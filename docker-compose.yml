@@ -10,9 +10,3 @@ services:
     restart: always
     ports:
       - ${PORT}:3001
-    networks:
-      - tutor-network
-  
-networks:
-  tutor-network:
-    driver: bridge
