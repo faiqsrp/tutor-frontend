@@ -1,4 +1,4 @@
-name: Deploy to EC2 (Main Only)
+name: Deploy to EC2
 
 on:
   push:
@@ -22,16 +22,16 @@ jobs:
         env:
           EC2_HOST_MAIN: ${{ secrets.EC2_HOST_MAIN }}
         run: |
-          echo "Connecting to EC2 and deploying tutor-backend..."
+          echo "Connecting to EC2 and deploying tutor-frontend..."
 
           ssh -o StrictHostKeyChecking=no ubuntu@$EC2_HOST_MAIN << EOF
             set -ex
 
             echo "Navigating to project directory..."
-            cd /repos/tutor-backend
+            cd /repos/tutor-frontend
 
             echo "Pulling latest changes using SSH..."
-            git remote set-url origin git@github.com:ameenmari78/tutor-backend.git
+            git remote set-url origin git@github-faiqsrp:faiqsrp/tutor-backend.git
             git fetch origin
             git reset --hard origin/main
 
