@@ -9,7 +9,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     ports:
-      - ${PORTAL_PORT}:3001
+      - ${PORT}:3001
     networks:
       - tutor-network
   
