@@ -1,9 +1,11 @@
-# Step 1: Build the React app
+# Step 1: Build the Vite app
 FROM node:22-slim as build
 
 WORKDIR /usr/src/app
+
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
+
 COPY . .
 RUN npm run build
 
@@ -12,14 +14,14 @@ FROM node:22-slim
 
 WORKDIR /app
 
-# Install serve
+# Install serve globally
 RUN npm install -g serve
 
-# Copy build output from previous stage
-COPY --from=build /usr/src/app/build ./build
+# Vite outputs to "dist", not "build"
+COPY --from=build /usr/src/app/dist ./build
 
 # Expose the desired port
 EXPOSE 3001
 
-# Run the app
+# Serve the app from the "build" folder
 CMD ["serve", "-s", "build", "-l", "3001"]
