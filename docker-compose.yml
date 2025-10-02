@@ -1,6 +1,6 @@
 services:
 
-  tutor:
+  frontend:
     container_name: tutor_frontend
     env_file:
       - .env
