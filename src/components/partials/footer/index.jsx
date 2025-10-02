@@ -25,7 +25,7 @@ const Footer = ({ className = "custom-class" }) => {
             <a
               href="https://srptechs.com/"
               target="_blank"
-              className="text-primary-500 font-semibold"
+              className="text-primary-800 font-semibold"
             >
               Srptechs
             </a>

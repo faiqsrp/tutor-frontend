@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
-import Dropdown from "@/components/ui/Dropdown";
-import { Menu } from "@headlessui/react";
+
 import {
   useTable,
   useRowSelect,
@@ -63,7 +62,7 @@ const StudentListing = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/user/students?page=${page}&limit=${limit}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/user/students?page=${page}&limit=${limit}`,
           {
             headers: { Authorization: `${token}` },
           }

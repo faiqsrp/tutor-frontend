@@ -1,6 +1,6 @@
 export const isValidEmail = (email) => {
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]{4,}\.[a-zA-Z]{2,6}$/;
-  return emailRegex.test(email)
+  return emailRegex.test(email);
 };
 
 export const isValidPhone = (phone) => {

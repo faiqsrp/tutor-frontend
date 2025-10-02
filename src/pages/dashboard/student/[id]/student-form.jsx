@@ -32,7 +32,7 @@ const isViewMode = mode === "view";
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/user/user/${id}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/user/user/${id}`,
           { headers: { Authorization: `${token}` } }
         );
 
@@ -73,7 +73,7 @@ const isViewMode = mode === "view";
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `${process.env.REACT_APP_BASE_URL}/user/student-update/${id}`,
+        `${import.meta.env.VITE_APP_BASE_URL}/user/student-update/${id}`,
         formData,
         {
           headers: {
@@ -153,7 +153,7 @@ const isViewMode = mode === "view";
               <img
                 src={
                   formData.image
-                    ? `${process.env.REACT_APP_BASE_URL}/${formData.image}`
+                    ? `${import.meta.env.VITE_APP_BASE_URL}/${formData.image}`
                     : NoImage
                 }
                 alt="Profile"

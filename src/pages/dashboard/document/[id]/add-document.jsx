@@ -21,6 +21,7 @@ const AddDocumentPage = () => {
     documnetBrief: "",
     documentURL: "",
     documentUpload: "",
+    documentPage: "NA",
   });
 
   const [docTypes, setDocTypes] = useState([]);
@@ -32,12 +33,12 @@ const AddDocumentPage = () => {
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/document-types/GetAll`,
+          `${import.meta.env.VITE_APP_BASE_URL}/document-types/GetAll`,
           { headers: { Authorization: `${token}` } }
         );
         setDocTypes(res.data.data || []);
       } catch (err) {
-          toast.error("Error fetching document types",err);
+        toast.error("Error fetching document types", err);
       }
     };
     fetchDocTypes();
@@ -49,7 +50,7 @@ const AddDocumentPage = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/documents/GetById/${id}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/documents/GetById/${id}`,
           { headers: { Authorization: `${token}` } }
         );
 
@@ -60,6 +61,7 @@ const AddDocumentPage = () => {
           documnetBrief: doc.documnetBrief || doc.description || "",
           documentURL: doc.documentURL || "",
           documentUpload: doc.documentUpload || "",
+          documentPage: doc.documentPage || "NA",
         });
       } catch (error) {
         toast.error("Error fetching document:", error);
@@ -91,7 +93,7 @@ const AddDocumentPage = () => {
       form.append("images", file);
 
       const res = await axios.post(
-        `${process.env.REACT_APP_BASE_URL}/upload/image`,
+        `${import.meta.env.VITE_APP_BASE_URL}/upload/image`,
         form,
         {
           headers: {
@@ -121,7 +123,7 @@ const AddDocumentPage = () => {
       if (isEditMode) {
         // update API
         await axios.put(
-          `${process.env.REACT_APP_BASE_URL}/documents/update/${id}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/documents/update/${id}`,
           formData,
           {
             headers: {
@@ -134,7 +136,7 @@ const AddDocumentPage = () => {
       } else {
         // add API
         await axios.post(
-          `${process.env.REACT_APP_BASE_URL}/documents/create`,
+          `${import.meta.env.VITE_APP_BASE_URL}/documents/create`,
           formData,
           {
             headers: {
@@ -148,7 +150,7 @@ const AddDocumentPage = () => {
 
       setTimeout(() => navigate("/document-listing"), 1200);
     } catch (error) {
-       toast.error(error.response?.data?.message || "All fields are required");
+      toast.error(error.response?.data?.message || "All fields are required");
     }
   };
 
@@ -161,8 +163,8 @@ const AddDocumentPage = () => {
           isViewMode
             ? "View Document"
             : isEditMode
-            ? "Edit Document"
-            : "Add Document"
+              ? "Edit Document"
+              : "Add Document"
         }
       >
         <form onSubmit={handleSubmit} className="p-4">
@@ -177,9 +179,8 @@ const AddDocumentPage = () => {
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  className={`border p-2 w-full rounded ${
-                    isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
-                  }`}
+                  className={`border p-2 w-full rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
+                    }`}
                   readOnly={isViewMode}
                 />
               </div>
@@ -193,9 +194,8 @@ const AddDocumentPage = () => {
                   name="documentType"
                   value={formData.documentType}
                   onChange={handleInputChange}
-                  className={`border p-2 w-full rounded ${
-                    isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
-                  }`}
+                  className={`border p-2 w-full rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
+                    }`}
                   disabled={isViewMode}
                 >
                   <option value="">Select Type</option>
@@ -216,10 +216,8 @@ const AddDocumentPage = () => {
                   name="documnetBrief"
                   value={formData.documnetBrief}
                   onChange={handleInputChange}
-                  rows={5}
-                  className={`border p-2 w-full rounded ${
-                    isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
-                  }`}
+                  className={`border p-2 w-full h-10 rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
+                    }`}
                   readOnly={isViewMode}
                 />
               </div>
@@ -237,9 +235,8 @@ const AddDocumentPage = () => {
                   name="documentURL"
                   value={formData.documentURL}
                   onChange={handleInputChange}
-                  className={`border p-2 w-full rounded ${
-                    isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
-                  }`}
+                  className={`border p-2 w-full rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
+                    }`}
                   readOnly={isViewMode}
                 />
               </div>
@@ -262,26 +259,41 @@ const AddDocumentPage = () => {
                     </p>
                   )}
                 </div>
-              )}
 
-              {/* Buttons */}
-              <div className="flex justify-end gap-4 pt-6">
+              )}
+              {/* Select Paper */}
+              <div>
+                <label className="block text-sm font-medium mb-1">Select Paper</label>
+                <select
+                  name="documentPage"
+                  value={formData.documentPage}
+                  onChange={handleInputChange}
+                  className={`border p-2 w-full rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
+                    }`}
+                  disabled={isViewMode}
+                >
+                  <option value="NA">NA</option>
+                  <option value="Page1">Paper 1</option>
+                  <option value="Page2">Paper 2</option>
+                </select>
+              </div>
+            </div>
+          </div>
+           <div className="flex justify-end gap-4 pt-6">
                 <Button
                   text="Cancel"
-                  className="btn-light w-full md:w-1/2"
+                  className="btn-light "
                   type="button"
                   onClick={() => navigate("/document-listing")}
                 />
                 {!isViewMode && (
                   <Button
                     text={isEditMode ? "Update Doc" : "Add Doc"}
-                    className="btn-primary w-full md:w-1/2"
+                    className="btn-primary"
                     type="submit"
                   />
                 )}
               </div>
-            </div>
-          </div>
         </form>
       </Card>
     </div>

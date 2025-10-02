@@ -63,7 +63,7 @@ const AllStudentListing = () => {
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/user/Get-all`,
+          `${import.meta.env.VITE_APP_BASE_URL}/user/Get-all`,
           {
             headers: { Authorization: `${token}` },
           }
@@ -81,7 +81,7 @@ const AllStudentListing = () => {
   try {
     const token = localStorage.getItem("token");
     const res = await axios.get(
-      `${process.env.REACT_APP_BASE_URL}/user/getStudentByAdmin`,
+      `${import.meta.env.VITE_APP_BASE_URL}/user/getStudentByAdmin`,
       {
         headers: { Authorization: `${token}` },
         params: { tenantId },
@@ -208,7 +208,21 @@ const AllStudentListing = () => {
     useGlobalFilter,
     useSortBy,
     usePagination,
-    useRowSelect
+    useRowSelect,
+    (hooks) => {
+      hooks.visibleColumns.push((columns) => [
+        {
+          id: "selection",
+          Header: ({ getToggleAllRowsSelectedProps }) => (
+            <IndeterminateCheckbox {...getToggleAllRowsSelectedProps()} />
+          ),
+          Cell: ({ row }) => (
+            <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />
+          ),
+        },
+        ...columns,
+      ]);
+    }
   );
 
   const {
@@ -227,13 +241,13 @@ const AllStudentListing = () => {
     <Card noborder>
       <div className="md:flex justify-between items-center mb-6">
         <h4 className="card-title">Students</h4>
-
         {/* Tutor Filter */}
         <div className="flex gap-4 items-center">
-          <select
+       <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
+        <select
             value={selectedTutor}
             onChange={handleTutorChange}
-            className="border p-2 rounded"
+            className="border p-2 rounded h-12"
           >
             <option value="">Select Tutor</option>
             {tutors.map((t) => (
@@ -242,9 +256,6 @@ const AllStudentListing = () => {
               </option>
             ))}
           </select>
-
-
-          <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
         </div>
       </div>
 
