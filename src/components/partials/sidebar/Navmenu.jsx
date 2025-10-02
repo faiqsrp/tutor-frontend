@@ -84,10 +84,17 @@ const Navmenu = ({ menus }) => {
               ${item.child ? "item-has-children" : ""}
               ${activeSubmenu === i ? "open" : ""}
               ${locationName === item.link ? "menu-item-active" : ""}`}
-          >
-            {/* single menu with no childred*/}
+          > 
+            {/* single menu with no children */}
             {!item.child && !item.isHeadr && (
-              <NavLink className="menu-link" to={item.link}>
+              <NavLink
+                className={({ isActive }) =>
+                  `menu-link flex items-center text-lg px-3 py-2 rounded-md transition-colors
+                  hover:bg-secondary-800 hover:text-white
+                  ${isActive ? "!text-white bg-primary-800 " : "text-gray-700"}`
+                }
+                to={item.link}
+              >
                 <span className="menu-icon flex-grow-0">
                   <Icon icon={item.icon} />
                 </span>
@@ -95,6 +102,7 @@ const Navmenu = ({ menus }) => {
                 {item.badge && <span className="menu-badge">{item.badge}</span>}
               </NavLink>
             )}
+
             {/* only for menulabel */}
             {item.isHeadr && !item.child && (
               <div className="menulabel">{item.title}</div>
@@ -102,11 +110,10 @@ const Navmenu = ({ menus }) => {
             {/*    !!sub menu parent   */}
             {item.child && (
               <div
-                className={`menu-link ${
-                  activeSubmenu === i
-                    ? "parent_active not-collapsed"
-                    : "collapsed"
-                }`}
+                className={`menu-link ${activeSubmenu === i
+                  ? "parent_active not-collapsed"
+                  : "collapsed"
+                  }`}
                 onClick={() => toggleSubmenu(i)}
               >
                 <div className="flex-1 flex items-start">
@@ -117,9 +124,8 @@ const Navmenu = ({ menus }) => {
                 </div>
                 <div className="flex-0">
                   <div
-                    className={`menu-arrow transform transition-all duration-300 ${
-                      activeSubmenu === i ? " rotate-90" : ""
-                    }`}
+                    className={`menu-arrow transform transition-all duration-300 ${activeSubmenu === i ? " rotate-90" : ""
+                      }`}
                   >
                     <Icon icon="heroicons-outline:chevron-right" />
                   </div>

@@ -4,6 +4,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import axios from "axios";
 import Fileinput from "@/components/ui/Fileinput";
+import { toast } from "react-toastify";
 
 const AddDocumentPage = () => {
   const { id } = useParams();
@@ -24,7 +25,6 @@ const AddDocumentPage = () => {
 
   const [docTypes, setDocTypes] = useState([]);
   const [loading, setLoading] = useState(isViewMode || isEditMode);
-  const [message, setMessage] = useState("");
 
   // fetch document types
   useEffect(() => {
@@ -37,7 +37,7 @@ const AddDocumentPage = () => {
         );
         setDocTypes(res.data.data || []);
       } catch (err) {
-        console.error("Error fetching document types:", err);
+          toast.error("Error fetching document types",err);
       }
     };
     fetchDocTypes();
@@ -62,8 +62,8 @@ const AddDocumentPage = () => {
           documentUpload: doc.documentUpload || "",
         });
       } catch (error) {
-        console.error("Error fetching document:", error);
-        setMessage("Error loading document data");
+        toast.error("Error fetching document:", error);
+        toast.error("Error loading document data");
       } finally {
         setLoading(false);
       }
@@ -107,8 +107,7 @@ const AddDocumentPage = () => {
         documentUpload: uploadedPath,
       }));
     } catch (error) {
-      console.error("File upload error:", error);
-      setMessage("Error uploading file");
+      toast.error("File upload error:", error);
     }
   };
 
@@ -131,7 +130,7 @@ const AddDocumentPage = () => {
             },
           }
         );
-        setMessage("Document updated successfully!");
+        toast.success("Document updated successfully!");
       } else {
         // add API
         await axios.post(
@@ -144,13 +143,12 @@ const AddDocumentPage = () => {
             },
           }
         );
-        setMessage("Document created successfully!");
+        toast.success("Document created successfully!");
       }
 
       setTimeout(() => navigate("/document-listing"), 1200);
     } catch (error) {
-      console.error("Error saving document:", error);
-      setMessage("Error saving document");
+       toast.error(error.response?.data?.message || "All fields are required");
     }
   };
 
@@ -277,7 +275,7 @@ const AddDocumentPage = () => {
                 {!isViewMode && (
                   <Button
                     text={isEditMode ? "Update Doc" : "Add Doc"}
-                    className="btn-dark w-full md:w-1/2"
+                    className="btn-primary w-full md:w-1/2"
                     type="submit"
                   />
                 )}
@@ -285,12 +283,6 @@ const AddDocumentPage = () => {
             </div>
           </div>
         </form>
-
-        {message && (
-          <div className="mt-4">
-            <p className="text-center">{message}</p>
-          </div>
-        )}
       </Card>
     </div>
   );

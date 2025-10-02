@@ -1,45 +1,79 @@
-export const menuItems = [
+export const adminMenu = [
   {
-    isHeadr: true,
-    title: "menu",
+    title: "Tenant",
+    icon: "heroicons-outline:user-group",
+    link: "/tenant-listing",
+  },
+  {
+    title: "Tutor",
+    icon: "heroicons-outline:academic-cap",
+    link: "/tutor-listing",
+  },
+  {
+    title: "DocType",
+    icon: "heroicons-outline:document-text",
+    link: "/doc-type-listing",
+  },
+  {
+    title: "AllStudent",
+    icon: "heroicons-outline:users",
+    link: "/all-student-listing",
+  },
+];
+
+
+export const menuItems = [
+  // {
+  //   isHeadr: true,
+  //   title: "menu",
+  // },
+  {
+    title: "Student",
+    icon: "heroicons-outline:users",
+    link: "/student-listing",
+  },
+  {
+    title: "Document",
+    icon: "heroicons-outline:document",
+    link: "/document-listing",
   },
 
-  {
-    title: "Dashboard",
-    icon: "heroicons-outline:home",
-    isOpen: true,
-    isHide: true,
-    child: [
-      {
-        childtitle: "Student",
-        childlink: "student-listing",
-      },
-      {
-        childtitle: "Document",
-        childlink: "document-listing",
-      },
-      // {
-      //   childtitle: "Analytics Dashboard",
-      //   childlink: "dashboard",
-      // },
-      // {
-      //   childtitle: "Ecommerce Dashboard",
-      //   childlink: "ecommerce",
-      // },
-      // {
-      //   childtitle: "Project  Dashbaord",
-      //   childlink: "project",
-      // },
-      // {
-      //   childtitle: " CRM Dashbaord",
-      //   childlink: "crm",
-      // },
-      // {
-      //   childtitle: "Banking Dashboard",
-      //   childlink: "banking",
-      // },
-    ],
-  },
+  // {
+  //   title: "Dashboard",
+  //   icon: "heroicons-outline:home",
+  //   isOpen: true,
+  //   isHide: true,
+  //   child: [
+  //     {
+  //       childtitle: "Student",
+  //       childlink: "student-listing",
+  //     },
+  //     {
+  //       childtitle: "Document",
+  //       childlink: "document-listing",
+  //     },
+  // {
+  //   childtitle: "Analytics Dashboard",
+  //   childlink: "dashboard",
+  // },
+  // {
+  //   childtitle: "Ecommerce Dashboard",
+  //   childlink: "ecommerce",
+  // },
+  // {
+  //   childtitle: "Project  Dashbaord",
+  //   childlink: "project",
+  // },
+  // {
+  //   childtitle: " CRM Dashbaord",
+  //   childlink: "crm",
+  // },
+  // {
+  //   childtitle: "Banking Dashboard",
+  //   childlink: "banking",
+  // },
+  //   ],
+  // },
   // {
   //   title: "changelog",
   //   icon: "heroicons:arrow-trending-up",

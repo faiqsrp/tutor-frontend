@@ -25,20 +25,19 @@ const SidebarLogo = ({ menuHover }) => {
           ? " border-b border-r-0 border-slate-200 dark:border-slate-700"
           : " border-none"
         }
-      
       `}
     >
       <Link to="/dashboard">
         <div className="flex justify-center items-center w-full">
           {!isDark && !isSemiDark ? (
-            <img src={MobileLogo} alt="logo" className="w-40 h-20 object-contain" />
+            <img src={MobileLogo} alt="logo" className="w-44 h-24 object-cover" />
           ) : (
             <img src={MobileLogoWhite} alt="logo" className="w-40 h-20 object-contain" />
           )}
         </div>
       </Link>
 
-      {/* {(!collapsed || menuHover) && (
+      {(!collapsed || menuHover) && (
         <div
           onClick={() => setMenuCollapsed(!collapsed)}
           className={`h-4 w-4 border-[1.5px] border-slate-900 dark:border-slate-700 rounded-full transition-all duration-150
@@ -49,7 +48,7 @@ const SidebarLogo = ({ menuHover }) => {
           }
           `}
         ></div>
-      )} */}
+      )}
     </div>
   );
 };

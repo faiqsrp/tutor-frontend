@@ -14,6 +14,7 @@ import {
   usePagination,
 } from "react-table";
 import GlobalFilter from "../../table/react-tables/GlobalFilter";
+import { toast } from "react-toastify";
 
 const IndeterminateCheckbox = React.forwardRef(
   ({ indeterminate, ...rest }, ref) => {
@@ -59,17 +60,14 @@ const DocumentListing = () => {
             headers: { Authorization: `${token}` },
           }
         );
-
+         toast.success("Document deleted successfully");
         // instantly update UI
         setDocuments((prev) => prev.filter((doc) => doc._id !== row._id));
       } catch (error) {
-        console.error("Error deleting document:", error);
+        toast.error("Error deleting document:", error);
       }
     }
   };
-
-
-
   const actions = [
     { name: "view", icon: "heroicons-outline:eye" },
     { name: "edit", icon: "heroicons:pencil-square" },
@@ -179,33 +177,34 @@ const DocumentListing = () => {
         Header: "Action",
         accessor: "action",
         Cell: ({ row }) => (
-          <Dropdown
-            classMenuItems="right-0 w-[140px] top-[110%]"
-            label={
-              <span className="text-xl text-center block w-full">
-                <Icon icon="heroicons-outline:dots-vertical" />
-              </span>
-            }
-          >
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {actions.map((item, i) => (
-                <Menu.Item key={i}>
-                  <div
-                    onClick={() => handleAction(item.name, row.original)}
-                    className={`${item.name === "delete"
-                      ? "bg-danger-500 text-danger-500 bg-opacity-30 hover:bg-opacity-100 hover:text-white"
-                      : "hover:bg-slate-900 hover:text-white dark:hover:bg-slate-600 dark:hover:bg-opacity-50"
-                      } w-full px-4 py-2 text-sm cursor-pointer flex space-x-2 items-center`}
-                  >
-                    <span className="text-base">
-                      <Icon icon={item.icon} />
-                    </span>
-                    <span className="capitalize">{item.name}</span>
-                  </div>
-                </Menu.Item>
-              ))}
-            </div>
-          </Dropdown>
+          <div className="flex space-x-3 rtl:space-x-reverse">
+            {/* View */}
+            <button
+              className="action-btn"
+              type="button"
+              onClick={() => handleAction("view", row.original)}
+            >
+              <Icon icon="heroicons:eye" />
+            </button>
+
+            {/* Edit */}
+            <button
+              className="action-btn"
+              type="button"
+              onClick={() => handleAction("edit", row.original)}
+            >
+              <Icon icon="heroicons:pencil-square" />
+            </button>
+
+            {/* Delete */}
+            <button
+              className="action-btn"
+              type="button"
+              onClick={() => handleAction("delete", row.original)}
+            >
+              <Icon icon="heroicons:trash" />
+            </button>
+          </div>
         ),
       },
     ],
@@ -251,20 +250,18 @@ const DocumentListing = () => {
 
   return (
     <div>
-      <div className="flex justify-end mb-4">
-        <Button
-          text="+ Create Document"
-          className="btn-dark"
-          type="button"
-          onClick={() => navigate("/add-document/add")}
-        />
-      </div>
       <Card noborder>
         <div className="md:flex justify-between items-center mb-6">
           <h4 className="card-title">Documents</h4>
 
           <div className="flex items-center gap-4">
             <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
+             <Button
+          text="+ Create Document"
+          className="btn-primary"
+          type="button"
+          onClick={() => navigate("/add-document/add")}
+        />
           </div>
         </div>
 

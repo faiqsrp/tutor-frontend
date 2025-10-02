@@ -119,8 +119,8 @@ const StudentListing = () => {
           <span className="block w-full">
             <span
               className={`inline-block px-3 min-w-[90px] text-center mx-auto py-1 rounded-full bg-opacity-25 ${row?.cell?.value
-                  ? "text-success-500 bg-success-500"
-                  : "text-danger-500 bg-danger-500"
+                ? "text-success-500 bg-success-500"
+                : "text-danger-500 bg-danger-500"
                 }`}
             >
               {row?.cell?.value ? "Active" : "Inactive"}
@@ -139,35 +139,36 @@ const StudentListing = () => {
         Header: "Action",
         accessor: "action",
         Cell: ({ row }) => (
-          <Dropdown
-            classMenuItems="right-0 w-[140px] top-[110%]"
-            label={
-              <span className="text-xl text-center block w-full">
-                <Icon icon="heroicons-outline:dots-vertical" />
-              </span>
-            }
-          >
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {actions.map((item, i) => (
-                <Menu.Item key={i}>
-                  <div
-                    onClick={() => handleAction(item.name, row.original)}
-                    className={`${item.name === "delete"
-                        ? "bg-danger-500 text-danger-500 bg-opacity-30 hover:bg-opacity-100 hover:text-white"
-                        : "hover:bg-slate-900 hover:text-white dark:hover:bg-slate-600 dark:hover:bg-opacity-50"
-                      } w-full px-4 py-2 text-sm cursor-pointer flex space-x-2 items-center`}
-                  >
-                    <span className="text-base">
-                      <Icon icon={item.icon} />
-                    </span>
-                    <span className="capitalize">{item.name}</span>
-                  </div>
-                </Menu.Item>
-              ))}
-            </div>
-          </Dropdown>
+          <div className="flex space-x-3 rtl:space-x-reverse">
+            {/* View */}
+            <button
+              className="action-btn"
+              type="button"
+              onClick={() => handleAction("view", row.original)}
+            >
+              <Icon icon="heroicons:eye" />
+            </button>
+
+            {/* Edit */}
+            <button
+              className="action-btn"
+              type="button"
+              onClick={() => handleAction("edit", row.original)}
+            >
+              <Icon icon="heroicons:pencil-square" />
+            </button>
+
+            {/* Delete */}
+            <button
+              className="action-btn"
+              type="button"
+              onClick={() => handleAction("delete", row.original)}
+            >
+              <Icon icon="heroicons:trash" />
+            </button>
+          </div>
         ),
-      },
+      }
     ],
     [page, limit]
   );

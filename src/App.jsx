@@ -12,6 +12,13 @@ const StudentFormPage = lazy(() => import("./pages/dashboard/student/[id]/studen
 const AddDocumentPage = lazy(() => import("./pages/dashboard/document/[id]/add-document"));
 const StudentListing = lazy(() => import("./pages/dashboard/student/student-listing"));
 const DocumentListing = lazy(() => import("./pages/dashboard/document/document-listing"));
+const AddTenantPage = lazy(() => import("./pages/dashboard/tenant/[id]/add-tenant"));
+const AddDocTypePage = lazy(() => import("./pages/dashboard/docType/[id]/add-doc-type"));
+const AddTutorPage = lazy(() => import("./pages/dashboard/tutor/[id]/add-tutor"));
+const TenantListing = lazy(() => import("./pages/dashboard/tenant/tenant-listing"));
+const TutorListing = lazy(() => import("./pages/dashboard/tutor/tutor-listing"));
+const DocTypeListing = lazy(() => import("./pages/dashboard/docType/doc-type-listing"));
+
 //login
 const Login = lazy(() => import("./pages/auth/login"));
 const Login2 = lazy(() => import("./pages/auth/login2"));
@@ -130,6 +137,7 @@ import Customers from "./pages/ecommerce/customers";
 import Sellers from "./pages/ecommerce/sellers";
 import AddProduct from "./pages/ecommerce/add-product";
 import InvoiceEPage from "./pages/ecommerce/invoice-ecompage";
+import AllStudentListing from "./pages/dashboard/allStudent/all-student-listing";
 
 
 function App() {
@@ -157,6 +165,16 @@ function App() {
           <Route path="student-listing" element={<StudentListing />} />
           <Route path="add-document/:id" element={<AddDocumentPage />} />
           <Route path="add-document/add" element={<AddDocumentPage />} />
+          <Route path="tenant-listing" element={<TenantListing />} />
+          <Route path="tutor-listing" element={<TutorListing />} />
+          <Route path="doc-type-listing" element={<DocTypeListing />} />
+          <Route path="all-student-listing" element={<AllStudentListing />} />
+          <Route path="add-tenant/:id" element={<AddTenantPage />} />
+          <Route path="add-tenant/add" element={<AddTenantPage />} />
+          <Route path="add-tutor/add" element={<AddTutorPage />} />
+          <Route path="add-tutor/:id" element={<AddTutorPage />} />
+          <Route path="add-doc-type/add" element={<AddDocTypePage />} />
+          <Route path="add-doc-type/:id" element={<AddDocTypePage />} />
           <Route path="ecommerce" element={<Ecommerce />} />
           <Route path="crm" element={<CrmPage />} />
           <Route path="project" element={<ProjectPage />} />

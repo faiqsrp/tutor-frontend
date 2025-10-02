@@ -4,6 +4,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import axios from "axios";
 import NoImage from "@/assets/images/all-img/404.svg";
+import { toast } from "react-toastify";
 
 const StudentFormPage = () => {
   const { id } = useParams();
@@ -47,8 +48,7 @@ const isViewMode = mode === "view";
           image: student.image || "",
         });
       } catch (error) {
-        console.error("Error fetching student:", error);
-        setMessage("Error loading student data");
+        toast.error("Error fetching student:", error);
       } finally {
         setLoading(false);
       }
@@ -83,11 +83,10 @@ const isViewMode = mode === "view";
         }
       );
 
-      setMessage("Student updated successfully!");
-      setTimeout(() => navigate("/dashboard"), 1200);
+      toast.success("Student updated successfully!");
+      setTimeout(() => navigate("/student-listing"), 1200);
     } catch (error) {
-      console.error("Error updating student:", error);
-      setMessage("Error updating student");
+      toast.error("Error updating student:", error);
     }
   };
 
@@ -173,7 +172,7 @@ const isViewMode = mode === "view";
                 {!isViewMode && (
                   <Button
                     text="Update"
-                    className="btn-dark w-1/2"
+                    className="btn-primary w-1/2"
                     type="submit"
                   />
                 )}
@@ -181,12 +180,6 @@ const isViewMode = mode === "view";
             </div>
           </div>
         </form>
-
-        {message && (
-          <div className="mt-4">
-            <p className="text-center">{message}</p>
-          </div>
-        )}
       </Card>
     </div>
   );
