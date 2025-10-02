@@ -1,0 +1,49 @@
+name: Deploy to EC2 (Main Only)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Deploy to EC2 (main)
+        env:
+          EC2_HOST_MAIN: ${{ secrets.EC2_HOST_MAIN }}
+        run: |
+          echo "Connecting to EC2 and deploying tutor-backend..."
+
+          ssh -o StrictHostKeyChecking=no ubuntu@$EC2_HOST_MAIN << EOF
+            set -ex
+
+            echo "Navigating to project directory..."
+            cd /repos/tutor-backend
+
+            echo "Pulling latest changes using SSH..."
+            git remote set-url origin git@github.com:ameenmari78/tutor-backend.git
+            git fetch origin
+            git reset --hard origin/main
+
+            echo "Stopping and removing existing containers..."
+            docker compose down
+
+            echo "Cleaning up unused Docker resources..."
+            docker system prune -f
+            docker volume prune -f
+
+            echo "Rebuilding and starting containers with .env..."
+            docker compose up --build -d
+
+            echo "Deployment completed successfully!"
+          EOF
