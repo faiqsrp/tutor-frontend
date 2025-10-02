@@ -55,12 +55,12 @@ const DocumentListing = () => {
       try {
         const token = localStorage.getItem("token");
         await axios.delete(
-          `${process.env.REACT_APP_BASE_URL}/documents/delete/${row._id}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/documents/delete/${row._id}`,
           {
             headers: { Authorization: `${token}` },
           }
         );
-         toast.success("Document deleted successfully");
+        toast.success("Document deleted successfully");
         // instantly update UI
         setDocuments((prev) => prev.filter((doc) => doc._id !== row._id));
       } catch (error) {
@@ -80,7 +80,7 @@ const DocumentListing = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/documents/GetAll`,
+          `${import.meta.env.VITE_APP_BASE_URL}/documents/GetAll`,
           {
             headers: { Authorization: `${token}` },
           }
@@ -123,13 +123,22 @@ const DocumentListing = () => {
         ),
       },
       {
+        Header: "Paper",
+        accessor: "documentPage", // comes directly from backend (Page1, Page2, NA)
+        Cell: (row) => (
+          <span className="text-sm text-slate-600 dark:text-slate-300">
+            {row?.cell?.value || "NA"}
+          </span>
+        ),
+      },
+      {
         Header: "Document",
         accessor: "documentFile", // <-- make sure your backend returns a file path or URL here
         Cell: ({ row }) => {
           const fileUrl = row.original?.documentFile; // Adjust key if different
           return fileUrl ? (
             <a
-              href={fileUrl.startsWith("http") ? fileUrl : `${process.env.REACT_APP_BASE_URL}/${fileUrl}`}
+              href={fileUrl.startsWith("http") ? fileUrl : `${import.meta.env.VITE_APP_BASE_URL}/${fileUrl}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 underline"
@@ -256,12 +265,12 @@ const DocumentListing = () => {
 
           <div className="flex items-center gap-4">
             <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
-             <Button
-          text="+ Create Document"
-          className="btn-primary"
-          type="button"
-          onClick={() => navigate("/add-document/add")}
-        />
+            <Button
+              text="+ Create Document"
+              className="btn-primary"
+              type="button"
+              onClick={() => navigate("/add-document/add")}
+            />
           </div>
         </div>
 

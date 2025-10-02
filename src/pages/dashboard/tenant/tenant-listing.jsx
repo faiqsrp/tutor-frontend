@@ -54,7 +54,7 @@ const TenantListing = () => {
         const token = localStorage.getItem("token");
 
         await axios.delete(
-          `${process.env.REACT_APP_BASE_URL}/tenants/${row._id}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/tenants/${row._id}`,
           { headers: { Authorization: `${token}` } }
         );
 
@@ -74,7 +74,7 @@ const TenantListing = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/tenants?page=${page}&limit=${limit}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/tenants?page=${page}&limit=${limit}`,
           {
             headers: { Authorization: `${token}` },
           }
@@ -116,8 +116,8 @@ const TenantListing = () => {
       { Header: "Email", accessor: "email" },
       { Header: "Phone", accessor: "phone" },
       { Header: "Address", accessor: "address" },
-      { Header: "Created By", accessor: "createdBy" }, // 👈 added
-      { Header: "Edited By", accessor: "updatedBy" }, // 👈 added
+      { Header: "Created By", accessor: "createdBy" }, 
+      { Header: "Edited By", accessor: "updatedBy" }, 
       {
         Header: "Status",
         accessor: "isActive",

@@ -55,7 +55,7 @@ const TutorListing = () => {
       try {
         const token = localStorage.getItem("token");
         await axios.delete(
-          `${process.env.REACT_APP_BASE_URL}/user/admin-remove/${row._id}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/user/admin-remove/${row._id}`,
           { headers: { Authorization: `${token}` } }
         );
         toast.success("Tutor Deleted Successfully");
@@ -71,7 +71,7 @@ const TutorListing = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/user/Get-all?page=${page}&limit=${limit}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/user/Get-all?page=${page}&limit=${limit}`,
           { headers: { Authorization: `${token}` } }
         );
 

@@ -48,7 +48,7 @@ const DocTypeListing = () => {
       try {
         const token = localStorage.getItem("token");
         await axios.delete(
-          `${process.env.REACT_APP_BASE_URL}/document-types/delete/${row._id}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/document-types/delete/${row._id}`,
           { headers: { Authorization: `${token}` } }
         );
         toast.success("DocType deleted successfully");
@@ -64,7 +64,7 @@ const DocTypeListing = () => {
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/document-types/GetAll?page=${page}&limit=${limit}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/document-types/GetAll?page=${page}&limit=${limit}`,
           { headers: { Authorization: `${token}` } }
         );
 

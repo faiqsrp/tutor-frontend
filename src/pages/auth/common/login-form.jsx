@@ -5,10 +5,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/store/api/auth/authSlice"; // import Redux action
+import Icon from "@/components/ui/Icon";
 
 const LoginForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [showPassword, setShowPassword] = useState(false);
 
   const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,7 +37,7 @@ const LoginForm = () => {
 
     try {
       const response = await fetch(
-        process.env.REACT_APP_BASE_URL + "/auth/login",
+        import.meta.env.VITE_APP_BASE_URL + "/auth/login",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -54,9 +56,7 @@ const LoginForm = () => {
       // Save to localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-      // When user logs in, save both token and user in localStorage:
-      localStorage.setItem("user-name", JSON.stringify(response.data.user));
-
+      localStorage.setItem("user-name", data.user.name);
 
       // Save to Redux
       dispatch(setUser(data.user));
@@ -96,16 +96,28 @@ const LoginForm = () => {
         placeholder="Enter your email"
         className="form-control h-[48px] w-full px-3 border rounded"
       />
-      <label>Password</label>
-      <input
-        name="password"
-        type="password"
-        value={formData.password}
-        onChange={handleChange}
-        placeholder="Enter your password"
-        className="form-control  h-[48px] w-full px-3 border rounded"
-      />
-
+      <div className="relative">
+        <label className="block text-sm font-medium">Password</label>
+        <input
+          type={showPassword ? "text" : "password"}
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+          className="w-full border p-2 rounded pr-10"
+        />
+        {/* Eye toggle button */}
+        <button
+          type="button"
+          onClick={() => setShowPassword((prev) => !prev)}
+          className="absolute right-3 top-10 transform -translate-y-1/2 text-gray-500"
+        >
+          {showPassword ? (
+            <Icon icon="heroicons:eye-slash" className="w-5 h-5" />
+          ) : (
+            <Icon icon="heroicons:eye" className="w-5 h-5" />
+          )}
+        </button>
+      </div>
       <div className="flex justify-between items-center">
         <Checkbox
           value={checked}

@@ -29,7 +29,7 @@ const AddTenantPage = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/tenants/${id}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/tenants/${id}`,
           { headers: { Authorization: `${token}` } }
         );
         const tenant = response.data.data;
@@ -78,14 +78,14 @@ const AddTenantPage = () => {
 
       if (isEditMode) {
         await axios.put(
-          `${process.env.REACT_APP_BASE_URL}/tenants/${id}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/tenants/${id}`,
           { ...formData, editedBy: user?.name },
           { headers: { "Content-Type": "application/json", Authorization: `${token}` } }
         );
         toast.success("Tenant updated successfully!");
       } else {
         await axios.post(
-          `${process.env.REACT_APP_BASE_URL}/tenants/`,
+          `${import.meta.env.VITE_APP_BASE_URL}/tenants/`,
           { ...formData, createdBy: user?.name },
           { headers: { "Content-Type": "application/json", Authorization: `${token}` } }
         );
@@ -130,8 +130,8 @@ const AddTenantPage = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`border p-2 w-full rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                  readOnly={isViewMode}
+                  className={`border p-2 w-full rounded ${isViewMode || isEditMode ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                  readOnly={isViewMode || isEditMode}
                 />
               </div>
               <div>
@@ -175,7 +175,7 @@ const AddTenantPage = () => {
           </div>
 
           {/* Buttons outside grid */}
-          <div className="flex justify-between gap-4 pt-6">
+          <div className="flex justify-end gap-4 pt-6">
             <Button
               text="Cancel"
               className="btn-light "

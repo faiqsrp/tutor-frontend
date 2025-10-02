@@ -23,7 +23,7 @@ const AddDocType = () => {
         try {
           const token = localStorage.getItem("token");
           const res = await axios.get(
-            `${process.env.REACT_APP_BASE_URL}/document-types/Doc-type/${id}`,
+            `${import.meta.env.VITE_APP_BASE_URL}/document-types/Doc-type/${id}`,
             { headers: { Authorization: `${token}` } }
           );
 
@@ -61,13 +61,13 @@ const AddDocType = () => {
     try {
       if (mode === "create") {
         await axios.post(
-          `${process.env.REACT_APP_BASE_URL}/document-types/Doc-type`,
+          `${import.meta.env.VITE_APP_BASE_URL}/document-types/Doc-type`,
           formData,
           { headers: { Authorization: `${token}` } }
         );
       } else if (mode === "edit") {
         await axios.put(
-          `${process.env.REACT_APP_BASE_URL}/document-types/update/${id}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/document-types/update/${id}`,
           formData,
           { headers: { Authorization: `${token}` } }
         );

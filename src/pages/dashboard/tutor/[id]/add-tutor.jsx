@@ -4,12 +4,14 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import { toast } from "react-toastify";
 import { isValidEmail } from "@/constant/validation";
+import Icon from "@/components/ui/Icon";
 
 const AddTutor = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
   const mode = location.state?.mode || "create"; // create | edit | view
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -28,7 +30,7 @@ const AddTutor = () => {
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/tenants`,
+          `${import.meta.env.VITE_APP_BASE_URL}/tenants`,
           { headers: { Authorization: `${token}` } }
         );
         setTenants(res.data?.data || []);
@@ -46,7 +48,7 @@ const AddTutor = () => {
         try {
           const token = localStorage.getItem("token");
           const res = await axios.get(
-            `${process.env.REACT_APP_BASE_URL}/user/user/${id}`,
+            `${import.meta.env.VITE_APP_BASE_URL}/user/user/${id}`,
             { headers: { Authorization: `${token}` } }
           );
 
@@ -56,7 +58,7 @@ const AddTutor = () => {
               username: tutor.username || "",
               name: tutor.name || "",
               email: tutor.email || "",
-              password: "", 
+              password: "",
               tenantId: tutor.tenantId?._id || tutor.tenantId || "",
             });
             setTenantName(tutor.tenantId?.name || "");
@@ -84,22 +86,22 @@ const AddTutor = () => {
     e.preventDefault();
     const token = localStorage.getItem("token");
     //validation
-     if (formData.email.length > 0 && !isValidEmail(formData.email)) {
-    toast.error("Invalid email address");
-    return;
-  }
+    if (formData.email.length > 0 && !isValidEmail(formData.email)) {
+      toast.error("Invalid email address");
+      return;
+    }
 
     try {
       if (mode === "create") {
         await axios.post(
-          `${process.env.REACT_APP_BASE_URL}/user/tutor`,
+          `${import.meta.env.VITE_APP_BASE_URL}/user/tutor`,
           formData,
           { headers: { Authorization: `${token}` } }
         );
-         toast.success("Tutor Added Successfully");
+        toast.success("Tutor Added Successfully");
       } else if (mode === "edit") {
         await axios.put(
-          `${process.env.REACT_APP_BASE_URL}/user/admin-update/${id}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/user/admin-update/${id}`,
           formData,
           { headers: { Authorization: `${token}` } }
         );
@@ -107,10 +109,10 @@ const AddTutor = () => {
       toast.success("Tutor Update Successfully");
       navigate("/tutor-listing");
     } catch (err) {
-       toast.error(err.response?.data?.message || "All fields are required");
+      toast.error(err.response?.data?.message || "All fields are required");
 
     }
-    
+
   };
 
   return (
@@ -130,10 +132,11 @@ const AddTutor = () => {
           <input
             type="text"
             name="username"
-            disabled={mode === "view" || mode === "edit"}
+            disabled={mode === "view"}
             value={formData.username}
             onChange={handleChange}
             className="w-full border p-2 rounded"
+
           />
         </div>
 
@@ -156,7 +159,7 @@ const AddTutor = () => {
           <input
             type="email"
             name="email"
-            disabled={mode === "view"}
+            disabled={mode === "view" ||mode === "edit"}
             value={formData.email}
             onChange={handleChange}
             className="w-full border p-2 rounded"
@@ -165,17 +168,30 @@ const AddTutor = () => {
 
         {/* Password (only in create mode) */}
         {mode === "create" && (
-          <div>
+          <div className="relative">
             <label className="block text-sm font-medium">Password</label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full border p-2 rounded"
+              className="w-full border p-2 rounded pr-10"
             />
+            {/* Eye toggle button */}
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-9 transform -translate-y-1/2 text-gray-500"
+            >
+              {showPassword ? (
+                <Icon icon="heroicons:eye-slash" className="w-5 h-5" />
+              ) : (
+                <Icon icon="heroicons:eye" className="w-5 h-5" />
+              )}
+            </button>
           </div>
         )}
+
 
         {/* Tenant */}
         <div>
