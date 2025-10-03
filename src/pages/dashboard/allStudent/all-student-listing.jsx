@@ -11,6 +11,7 @@ import {
   usePagination,
 } from "react-table";
 import GlobalFilter from "../../table/react-tables/GlobalFilter";
+import Loader from "@/assets/images/logo/logo.png";
 
 const IndeterminateCheckbox = React.forwardRef(
   ({ indeterminate, ...rest }, ref) => {
@@ -37,6 +38,7 @@ const AllStudentListing = () => {
   const [students, setStudents] = useState([]);
   const [tutors, setTutors] = useState([]);
   const [selectedTutor, setSelectedTutor] = useState("");
+  const [loading, setLoading] = useState(false); // loading state
 
   // Pagination states
   const [total, setTotal] = useState(0);
@@ -77,33 +79,36 @@ const AllStudentListing = () => {
   }, []);
 
   // Fetch Students (all or filtered)
- const fetchStudents = async (tenantId) => {
-  try {
-    const token = localStorage.getItem("token");
-    const res = await axios.get(
-      `${import.meta.env.VITE_APP_BASE_URL}/user/getStudentByAdmin`,
-      {
-        headers: { Authorization: `${token}` },
-        params: { tenantId },
+  const fetchStudents = async (tenantId) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const res = await axios.get(
+        `${import.meta.env.VITE_APP_BASE_URL}/user/getStudentByAdmin`,
+        {
+          headers: { Authorization: `${token}` },
+          params: { tenantId },
+        }
+      );
+
+      console.log("Students API response =>", res.data);
+
+      // Extract students + pagination
+      const { students, pagination } = res.data?.data || {};
+      setStudents(students || []);
+
+      if (pagination) {
+        setTotal(pagination.total || 0);
+        setPage(pagination.page || 1);
+        setLimit(pagination.limit || 10);
+        setPages(pagination.pages || 1);
       }
-    );
-
-    console.log("Students API response =>", res.data);
-
-    // Extract students + pagination
-    const { students, pagination } = res.data?.data || {};
-    setStudents(students || []);
-
-    if (pagination) {
-      setTotal(pagination.total || 0);
-      setPage(pagination.page || 1);
-      setLimit(pagination.limit || 10);
-      setPages(pagination.pages || 1);
+    } catch (err) {
+      console.error("Error fetching students:", err);
+    } finally {
+      setLoading(false); // stop loading
     }
-  } catch (err) {
-    console.error("Error fetching students:", err);
-  }
-};
+  };
 
 
   const handleTutorChange = (e) => {
@@ -115,12 +120,12 @@ const AllStudentListing = () => {
     }
   };
   useEffect(() => {
-  const savedTutor = localStorage.getItem("selectedTutor");
-  if (savedTutor) {
-    setSelectedTutor(savedTutor);
-    fetchStudents(savedTutor);
-  }
-}, []);
+    const savedTutor = localStorage.getItem("selectedTutor");
+    if (savedTutor) {
+      setSelectedTutor(savedTutor);
+      fetchStudents(savedTutor);
+    }
+  }, []);
 
 
   const COLUMNS = useMemo(
@@ -243,8 +248,8 @@ const AllStudentListing = () => {
         <h4 className="card-title">Students</h4>
         {/* Tutor Filter */}
         <div className="flex gap-4 items-center">
-       <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
-        <select
+          <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
+          <select
             value={selectedTutor}
             onChange={handleTutorChange}
             className="border p-2 rounded h-12"
@@ -281,19 +286,39 @@ const AllStudentListing = () => {
                   </tr>
                 ))}
               </thead>
-              <tbody {...getTableBodyProps()}>
-                {tablePage.map((row) => {
-                  prepareRow(row);
-                  return (
-                    <tr {...row.getRowProps()}>
-                      {row.cells.map((cell) => (
-                        <td {...cell.getCellProps()} className="table-td">
-                          {cell.render("Cell")}
-                        </td>
-                      ))}
-                    </tr>
-                  );
-                })}
+              <tbody {...getTableBodyProps()} className="text-center">
+                {loading ? (
+                  <tr>
+                    <td colSpan={COLUMNS.length + 1} className="py-10">
+                      <div className="flex justify-center items-center">
+                        <img
+                          src={Loader}
+                          alt="Loading..."
+                          className="w-100 h-32"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ) : tablePage.length > 0 ? (
+                  tablePage.map((row) => {
+                    prepareRow(row);
+                    return (
+                      <tr {...row.getRowProps()}>
+                        {row.cells.map((cell) => (
+                          <td {...cell.getCellProps()} className="table-td border-b">
+                            {cell.render("Cell")}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={COLUMNS.length + 1} className="py-6 text-gray-500">
+                      No students found
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -301,28 +326,28 @@ const AllStudentListing = () => {
       </div>
 
       {/* Pagination */}
-        <div className="md:flex justify-between items-center mt-6">
-          <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            Page {page} of {pages} | Total {total} students
-          </span>
+      <div className="md:flex justify-between items-center mt-6">
+        <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+          Page {page} of {pages} | Total {total} students
+        </span>
 
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-            >
-              Prev
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(pages, p + 1))}
-              disabled={page === pages}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <button
+            onClick={() => setPage((p) => Math.min(pages, p + 1))}
+            disabled={page === pages}
+            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
+      </div>
     </Card>
   );
 };

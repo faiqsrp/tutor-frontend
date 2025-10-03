@@ -134,17 +134,6 @@ const AddTenantPage = () => {
                   readOnly={isViewMode || isEditMode}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Phone</label>
-                <input
-                  type="text"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  className={`border p-2 w-full rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                  readOnly={isViewMode}
-                />
-              </div>
             </div>
 
             {/* Right Column */}
@@ -161,18 +150,29 @@ const AddTenantPage = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Notes</label>
-                <textarea
-                  name="notes"
-                  value={formData.notes}
+                <label className="block text-sm font-medium mb-1">Phone</label>
+                <input
+                  type="text"
+                  name="phone"
+                  value={formData.phone}
                   onChange={handleInputChange}
-                  rows={6}
                   className={`border p-2 w-full rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""}`}
                   readOnly={isViewMode}
                 />
               </div>
             </div>
           </div>
+           <div>
+                <label className="block text-sm font-medium mb-1 mt-5">Notes</label>
+                <textarea
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleInputChange}
+                  rows={2}
+                  className={`border p-2 w-full rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                  readOnly={isViewMode}
+                />
+              </div>
 
           {/* Buttons outside grid */}
           <div className="flex justify-end gap-4 pt-6">

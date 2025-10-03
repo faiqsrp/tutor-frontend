@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
-
 import {
   useTable,
   useRowSelect,
@@ -12,6 +11,7 @@ import {
   usePagination,
 } from "react-table";
 import GlobalFilter from "../../table/react-tables/GlobalFilter";
+import Loader from "@/assets/images/logo/logo.png";
 
 const IndeterminateCheckbox = React.forwardRef(
   ({ indeterminate, ...rest }, ref) => {
@@ -29,6 +29,7 @@ const IndeterminateCheckbox = React.forwardRef(
 const StudentListing = () => {
   const navigate = useNavigate();
   const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   // Pagination states from API
   const [total, setTotal] = useState(0);
@@ -60,6 +61,7 @@ const StudentListing = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
+        setLoading(true);
         const token = localStorage.getItem("token");
         const response = await axios.get(
           `${import.meta.env.VITE_APP_BASE_URL}/user/students?page=${page}&limit=${limit}`,
@@ -78,6 +80,8 @@ const StudentListing = () => {
         setPages(pagination.pages);
       } catch (error) {
         console.error("Error fetching students:", error);
+      } finally {
+        setLoading(false); //  stop loading after fetch
       }
     };
 
@@ -246,22 +250,39 @@ const StudentListing = () => {
                 ))}
               </thead>
 
-              <tbody
-                className="bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700"
-                {...getTableBodyProps()}
-              >
-                {tablePage.map((row) => {
-                  prepareRow(row);
-                  return (
-                    <tr {...row.getRowProps()}>
-                      {row.cells.map((cell) => (
-                        <td {...cell.getCellProps()} className="table-td">
-                          {cell.render("Cell")}
-                        </td>
-                      ))}
-                    </tr>
-                  );
-                })}
+              <tbody {...getTableBodyProps()} className="text-center">
+                {loading ? (
+                  <tr>
+                    <td colSpan={COLUMNS.length + 1} className="py-10">
+                      <div className="flex justify-center items-center">
+                        <img
+                          src={Loader}
+                          alt="Loading..."
+                          className="w-100 h-32"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ) : tablePage.length > 0 ? (
+                  tablePage.map((row) => {
+                    prepareRow(row);
+                    return (
+                      <tr {...row.getRowProps()}>
+                        {row.cells.map((cell) => (
+                          <td {...cell.getCellProps()} className="table-td border-b">
+                            {cell.render("Cell")}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={COLUMNS.length + 1} className="py-6 text-gray-500">
+                      No students found
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

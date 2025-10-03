@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import { toast } from "react-toastify";
+import Card from "@/components/ui/Card";
 
 const AddDocType = () => {
   const navigate = useNavigate();
@@ -80,15 +81,16 @@ const AddDocType = () => {
   };
 
   return (
-    <div className="p-6 bg-white shadow rounded-lg">
-      <h2 className="text-xl font-semibold mb-4">
-        {mode === "view"
+    <div >
+        <Card
+        title={
+          mode === "view"
           ? "View Document Type"
           : mode === "edit"
             ? "Edit Document Type"
-            : "Add Document Type"}
-      </h2>
-
+            : "Add Document Type"
+        }
+      >
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Type */}
         <div>
@@ -135,19 +137,20 @@ const AddDocType = () => {
         <div className="flex justify-end gap-4 pt-6">
           <Button
             text="Cancel"
-            className="btn-light w-full md:w-1/2"
+            className="btn-light "
             type="button"
             onClick={() => navigate("/doc-type-listing")}
           />
           {mode !== "view" && (
             <Button
               text={mode === "edit"? "Update Doc Type" : "Add Doc Type"}
-              className="btn-primary w-full md:w-1/2"
+              className="btn-primary "
               type="submit"
             />
           )}
         </div>
       </form>
+      </Card>
     </div>
   );
 };

@@ -13,6 +13,7 @@ import {
 } from "react-table";
 import GlobalFilter from "../../table/react-tables/GlobalFilter";
 import { toast } from "react-toastify";
+import Loader from "@/assets/images/logo/logo.png";
 
 const IndeterminateCheckbox = React.forwardRef(
   ({ indeterminate, ...rest }, ref) => {
@@ -37,6 +38,8 @@ const IndeterminateCheckbox = React.forwardRef(
 const TutorListing = () => {
   const navigate = useNavigate();
   const [tutors, setTutors] = useState([]);
+  const loggedInUser = JSON.parse(localStorage.getItem("user")); //  logged-in user
+  const [loading, setLoading] = useState(false);
 
   // Pagination states
   const [total, setTotal] = useState(0);
@@ -69,15 +72,21 @@ const TutorListing = () => {
   useEffect(() => {
     const fetchTutors = async () => {
       try {
+        setLoading(true);
         const token = localStorage.getItem("token");
         const response = await axios.get(
           `${import.meta.env.VITE_APP_BASE_URL}/user/Get-all?page=${page}&limit=${limit}`,
           { headers: { Authorization: `${token}` } }
         );
+       const merged = (response.data.data || [])
+        .filter((u) => u.type === "tutor" && !u.isDeleted)
+        .map((t) => ({
+          ...t,
+          createdBy: t.createdBy || loggedInUser?.name || "-",
+          updatedBy: t.updatedBy || loggedInUser?.name || "-",
+        }));
 
-        // Only keep tutors
-        setTutors((response.data.data || []).filter((u) => u.type === "tutor"));
-
+      setTutors(merged);
         // Set pagination details
         if (response.data.pagination) {
           const pagination = response.data.pagination;
@@ -88,10 +97,12 @@ const TutorListing = () => {
         }
       } catch (error) {
         console.error("Error fetching tutors:", error);
+      } finally {
+        setLoading(false); //  stop loading after fetch
       }
     };
     fetchTutors();
-  }, [page, limit]);
+  }, [page, limit, loggedInUser?.name]);
 
   const COLUMNS = useMemo(
     () => [
@@ -115,6 +126,8 @@ const TutorListing = () => {
         accessor: "isActive",
         Cell: (row) => <span>{row.value ? "Yes" : "No"}</span>,
       },
+      { Header: "Created By", accessor: "createdBy" },
+      { Header: "Edited By", accessor: "updatedBy" },
       {
         Header: "Created At",
         accessor: "createdAt",
@@ -197,14 +210,14 @@ const TutorListing = () => {
       <Card noborder>
         <div className="md:flex justify-between items-center mb-6">
           <h4 className="card-title">Tutors</h4>
-            <div className="flex items-center gap-3">
-          <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
-          <Button
-            text="+ Create Tutor"
-            className="btn-primary"
-            type="button"
-            onClick={() => navigate("/add-tutor/add")}
-          />
+          <div className="flex items-center gap-3">
+            <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
+            <Button
+              text="+ Create Tutor"
+              className="btn-primary"
+              type="button"
+              onClick={() => navigate("/add-tutor/add")}
+            />
           </div>
         </div>
 
@@ -236,22 +249,39 @@ const TutorListing = () => {
                     </tr>
                   ))}
                 </thead>
-                <tbody
-                  className="bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700"
-                  {...getTableBodyProps()}
-                >
-                  {tablePage.map((row) => {
-                    prepareRow(row);
-                    return (
-                      <tr {...row.getRowProps()}>
-                        {row.cells.map((cell) => (
-                          <td {...cell.getCellProps()} className="table-td">
-                            {cell.render("Cell")}
-                          </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
+                <tbody {...getTableBodyProps()} className="text-center">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={COLUMNS.length + 1} className="py-10">
+                        <div className="flex justify-center items-center">
+                          <img
+                            src={Loader}
+                            alt="Loading..."
+                            className="w-100 h-32"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ) : tablePage.length > 0 ? (
+                    tablePage.map((row) => {
+                      prepareRow(row);
+                      return (
+                        <tr {...row.getRowProps()}>
+                          {row.cells.map((cell) => (
+                            <td {...cell.getCellProps()} className="table-td border-b">
+                              {cell.render("Cell")}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={COLUMNS.length + 1} className="py-6 text-gray-500">
+                        No students found
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
