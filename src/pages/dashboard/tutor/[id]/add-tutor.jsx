@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button";
 import { toast } from "react-toastify";
 import { isValidEmail } from "@/constant/validation";
 import Icon from "@/components/ui/Icon";
+import Card from "@/components/ui/Card";
 
 const AddTutor = () => {
   const navigate = useNavigate();
@@ -92,17 +93,20 @@ const AddTutor = () => {
     }
 
     try {
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user")); // get logged in user
+
       if (mode === "create") {
         await axios.post(
           `${import.meta.env.VITE_APP_BASE_URL}/user/tutor`,
-          formData,
+          { ...formData, createdBy: user?.name },
           { headers: { Authorization: `${token}` } }
         );
         toast.success("Tutor Added Successfully");
       } else if (mode === "edit") {
         await axios.put(
           `${import.meta.env.VITE_APP_BASE_URL}/user/admin-update/${id}`,
-          formData,
+          { ...formData, editedBy: user?.name },
           { headers: { Authorization: `${token}` } }
         );
       }
@@ -116,129 +120,132 @@ const AddTutor = () => {
   };
 
   return (
-    <div className="p-6 bg-white shadow rounded-lg">
-      <h2 className="text-xl font-semibold mb-4">
-        {mode === "view"
-          ? "View Tutor"
-          : mode === "edit"
-            ? "Edit Tutor"
-            : "Add Tutor"}
-      </h2>
+    <div >
+      <Card
+        title={
+          mode === "view"
+            ? "View Tutor"
+            : mode === "edit"
+              ? "Edit Tutor"
+              : "Add Tutor"
+        }
+      >
+        <form onSubmit={handleSubmit} className=" grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Username */}
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium">Username</label>
+              <input
+                type="text"
+                name="username"
+                disabled={mode === "view"}
+                value={formData.username}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Username */}
-        <div>
-          <label className="block text-sm font-medium">Username</label>
-          <input
-            type="text"
-            name="username"
-            disabled={mode === "view"}
-            value={formData.username}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
+              />
+            </div>
+            {/* Password (only in create mode) */}
+            {mode === "create" && (
+              <div className="relative">
+                <label className="block text-sm font-medium">Password</label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full border p-2 rounded pr-10"
+                />
+                {/* Eye toggle button */}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-9 transform -translate-y-1/2 text-gray-500"
+                >
+                  {showPassword ? (
+                    <Icon icon="heroicons:eye-slash" className="w-5 h-5" />
+                  ) : (
+                    <Icon icon="heroicons:eye" className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            )}
 
-          />
-        </div>
-
-        {/* Name */}
-        <div>
-          <label className="block text-sm font-medium">Name</label>
-          <input
-            type="text"
-            name="name"
-            disabled={mode === "view"}
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-          />
-        </div>
-
-        {/* Email */}
-        <div>
-          <label className="block text-sm font-medium">Email</label>
-          <input
-            type="email"
-            name="email"
-            disabled={mode === "view" ||mode === "edit"}
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-          />
-        </div>
-
-        {/* Password (only in create mode) */}
-        {mode === "create" && (
-          <div className="relative">
-            <label className="block text-sm font-medium">Password</label>
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full border p-2 rounded pr-10"
-            />
-            {/* Eye toggle button */}
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-9 transform -translate-y-1/2 text-gray-500"
-            >
-              {showPassword ? (
-                <Icon icon="heroicons:eye-slash" className="w-5 h-5" />
-              ) : (
-                <Icon icon="heroicons:eye" className="w-5 h-5" />
-              )}
-            </button>
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium">Email</label>
+              <input
+                type="email"
+                name="email"
+                disabled={mode === "view" || mode === "edit"}
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+              />
+            </div>
           </div>
-        )}
+          <div className="space-y-6">
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-medium">Name</label>
+              <input
+                type="text"
+                name="name"
+                disabled={mode === "view"}
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+              />
+            </div>
 
-
-        {/* Tenant */}
-        <div>
-          <label className="block text-sm font-medium">Tenant</label>
-          {mode === "view" ? (
-            <input
-              type="text"
-              value={tenantName}
-              disabled
-              className="w-full border p-2 rounded bg-gray-100"
-            />
-          ) : (
-            <select
-              name="tenantId"
-              disabled={mode === "view"}
-              value={formData.tenantId}
-              onChange={handleChange}
-              className="w-full border p-2 rounded"
-            >
-              <option value="">Select Tenant</option>
-              {tenants.map((tenant) => (
-                <option key={tenant._id} value={tenant._id}>
-                  {tenant.name}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-between gap-4 pt-6">
-          <Button
-            text="Cancel"
-            className="btn-light "
-            type="button"
-            onClick={() => navigate("/tutor-listing")}
-          />
-          {mode !== "view" && (
+            {/* Tenant */}
+            <div>
+              <label className="block text-sm font-medium">Tenant</label>
+              {mode === "view" ? (
+                <input
+                  type="text"
+                  value={tenantName}
+                  disabled
+                  className="w-full border p-2 rounded bg-gray-100"
+                />
+              ) : (
+                <select
+                  name="tenantId"
+                  disabled={mode === "view"}
+                  value={formData.tenantId}
+                  onChange={handleChange}
+                  className="w-full border p-2 rounded"
+                >
+                  <option value="">Select Tenant</option>
+                  {tenants.map((tenant) => (
+                    <option key={tenant._id} value={tenant._id}>
+                      {tenant.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          </div>
+        </form>
+         {/* Buttons */}
+          <div className="flex justify-end gap-4 pt-6">
             <Button
-              text={mode === "edit" ? "Update Tutor" : "Add Tutor"}
-              className="btn-primary"
-              type="submit"
+              text="Cancel"
+              className="btn-light "
+              type="button"
+              onClick={() => navigate("/tutor-listing")}
             />
-          )}
-        </div>
-      </form>
+            {mode !== "view" && (
+              <Button
+                text={mode === "edit" ? "Update Tutor" : "Add Tutor"}
+                className="btn-primary"
+                type="submit"
+              />
+            )}
+          </div>
+      </Card>
     </div>
+
   );
 };
 

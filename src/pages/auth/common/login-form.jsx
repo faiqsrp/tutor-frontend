@@ -135,7 +135,7 @@ const LoginForm = () => {
       <Button
         type="submit"
         text={loading ? "Signing in..." : "Sign in"}
-        className="btn btn-dark block w-full text-center"
+        className="btn btn-primary block w-full text-center"
         isLoading={loading}
       />
     </form>

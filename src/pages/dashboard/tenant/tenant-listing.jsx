@@ -13,6 +13,7 @@ import {
 import GlobalFilter from "../../table/react-tables/GlobalFilter";
 import Button from "@/components/ui/Button";
 import { toast } from "react-toastify";
+import Loader from "@/assets/images/logo/logo.png";
 
 const IndeterminateCheckbox = React.forwardRef(
   ({ indeterminate, ...rest }, ref) => {
@@ -32,8 +33,8 @@ const IndeterminateCheckbox = React.forwardRef(
 const TenantListing = () => {
   const navigate = useNavigate();
   const [tenants, setTenants] = useState([]);
-
-  const loggedInUser = JSON.parse(localStorage.getItem("user")); // 👈 logged-in user
+  const [loading, setLoading] = useState(false);
+  const loggedInUser = JSON.parse(localStorage.getItem("user")); //  logged-in user
 
   // Pagination states
   const [total, setTotal] = useState(0);
@@ -72,6 +73,7 @@ const TenantListing = () => {
   useEffect(() => {
     const fetchTenants = async () => {
       try {
+        setLoading(true);
         const token = localStorage.getItem("token");
         const response = await axios.get(
           `${import.meta.env.VITE_APP_BASE_URL}/tenants?page=${page}&limit=${limit}`,
@@ -97,6 +99,8 @@ const TenantListing = () => {
         setPages(pagination.totalPages);
       } catch (error) {
         console.error("Error fetching tenants:", error);
+      } finally {
+        setLoading(false); //  stop loading after fetch
       }
     };
 
@@ -116,18 +120,17 @@ const TenantListing = () => {
       { Header: "Email", accessor: "email" },
       { Header: "Phone", accessor: "phone" },
       { Header: "Address", accessor: "address" },
-      { Header: "Created By", accessor: "createdBy" }, 
-      { Header: "Edited By", accessor: "updatedBy" }, 
+      { Header: "Created By", accessor: "createdBy" },
+      { Header: "Edited By", accessor: "updatedBy" },
       {
         Header: "Status",
         accessor: "isActive",
         Cell: (row) => (
           <span
-            className={`inline-block px-3 min-w-[90px] text-center mx-auto py-1 rounded-full bg-opacity-25 ${
-              row?.cell?.value
-                ? "text-success-500 bg-success-500"
-                : "text-danger-500 bg-danger-500"
-            }`}
+            className={`inline-block px-3 min-w-[90px] text-center mx-auto py-1 rounded-full bg-opacity-25 ${row?.cell?.value
+              ? "text-success-500 bg-success-500"
+              : "text-danger-500 bg-danger-500"
+              }`}
           >
             {row?.cell?.value ? "Active" : "Inactive"}
           </span>
@@ -254,22 +257,39 @@ const TenantListing = () => {
                     </tr>
                   ))}
                 </thead>
-                <tbody
-                  className="bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700"
-                  {...getTableBodyProps()}
-                >
-                  {tablePage.map((row) => {
-                    prepareRow(row);
-                    return (
-                      <tr {...row.getRowProps()}>
-                        {row.cells.map((cell) => (
-                          <td {...cell.getCellProps()} className="table-td">
-                            {cell.render("Cell")}
-                          </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
+                <tbody {...getTableBodyProps()} className="text-center">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={COLUMNS.length + 1} className="py-10">
+                        <div className="flex justify-center items-center">
+                          <img
+                            src={Loader}
+                            alt="Loading..."
+                            className="w-100 h-32"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ) : tablePage.length > 0 ? (
+                    tablePage.map((row) => {
+                      prepareRow(row);
+                      return (
+                        <tr {...row.getRowProps()}>
+                          {row.cells.map((cell) => (
+                            <td {...cell.getCellProps()} className="table-td border-b">
+                              {cell.render("Cell")}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={COLUMNS.length + 1} className="py-6 text-gray-500">
+                        No students found
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

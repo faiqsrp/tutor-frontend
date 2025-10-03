@@ -90,8 +90,8 @@ const Navmenu = ({ menus }) => {
               <NavLink
                 className={({ isActive }) =>
                   `menu-link flex items-center text-lg px-3 py-2 rounded-md transition-colors
-                  hover:bg-secondary-800 hover:text-white
-                  ${isActive ? "!text-white bg-primary-800 " : "text-gray-700"}`
+                  hover:bg-gray-100 hover:text-grey
+                  ${isActive ? "bg-gray-300 " : "text-gray-700"}`
                 }
                 to={item.link}
               >

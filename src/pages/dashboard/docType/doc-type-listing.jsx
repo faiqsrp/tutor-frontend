@@ -12,6 +12,7 @@ import {
   usePagination,
 } from "react-table";
 import GlobalFilter from "../../table/react-tables/GlobalFilter";
+import Loader from "@/assets/images/logo/logo.png";
 
 const IndeterminateCheckbox = React.forwardRef(
   ({ indeterminate, ...rest }, ref) => {
@@ -30,7 +31,7 @@ const IndeterminateCheckbox = React.forwardRef(
 
 const DocTypeListing = () => {
   const navigate = useNavigate();
-
+  const [loading, setLoading] = useState(false);
   const [docTypes, setDocTypes] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -62,6 +63,7 @@ const DocTypeListing = () => {
   useEffect(() => {
     const fetchDocTypes = async () => {
       try {
+        setLoading(true);
         const token = localStorage.getItem("token");
         const res = await axios.get(
           `${import.meta.env.VITE_APP_BASE_URL}/document-types/GetAll?page=${page}&limit=${limit}`,
@@ -83,6 +85,8 @@ const DocTypeListing = () => {
       } catch (error) {
         console.error("Error fetching document types:", error);
         setDocTypes([]);
+      } finally {
+        setLoading(false); //  stop loading after fetch
       }
     };
     fetchDocTypes();
@@ -182,13 +186,13 @@ const DocTypeListing = () => {
         <div className="md:flex justify-between items-center mb-6">
           <h4 className="card-title">Document Types</h4>
           <div className="flex items-center gap-3">
-          <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
-           <Button
-            text="+ Create Doc Type"
-            className="btn-primary"
-            type="button"
-            onClick={() => navigate("/add-doc-type/add")}
-          />
+            <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
+            <Button
+              text="+ Create Doc Type"
+              className="btn-primary"
+              type="button"
+              onClick={() => navigate("/add-doc-type/add")}
+            />
           </div>
         </div>
 
@@ -221,22 +225,39 @@ const DocTypeListing = () => {
                     </tr>
                   ))}
                 </thead>
-                <tbody
-                  className="bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700"
-                  {...getTableBodyProps()}
-                >
-                  {tablePage.map((row) => {
-                    prepareRow(row);
-                    return (
-                      <tr {...row.getRowProps()}>
-                        {row.cells.map((cell) => (
-                          <td {...cell.getCellProps()} className="table-td">
-                            {cell.render("Cell")}
-                          </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
+                <tbody {...getTableBodyProps()} className="text-center">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={COLUMNS.length + 1} className="py-10">
+                        <div className="flex justify-center items-center">
+                          <img
+                            src={Loader}
+                            alt="Loading..."
+                            className="w-100 h-32"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ) : tablePage.length > 0 ? (
+                    tablePage.map((row) => {
+                      prepareRow(row);
+                      return (
+                        <tr {...row.getRowProps()}>
+                          {row.cells.map((cell) => (
+                            <td {...cell.getCellProps()} className="table-td border-b">
+                              {cell.render("Cell")}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={COLUMNS.length + 1} className="py-6 text-gray-500">
+                        No students found
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
