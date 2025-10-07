@@ -286,7 +286,7 @@ const AllStudentListing = () => {
                   </tr>
                 ))}
               </thead>
-              <tbody {...getTableBodyProps()} className="text-center">
+              <tbody {...getTableBodyProps()} className="text-left">
                 {loading ? (
                   <tr>
                     <td colSpan={COLUMNS.length + 1} className="py-10">
