@@ -90,8 +90,8 @@ const Navmenu = ({ menus }) => {
               <NavLink
                 className={({ isActive }) =>
                   `menu-link flex items-center text-lg px-3 py-2 rounded-md transition-colors
-                  hover:bg-gray-100 hover:text-grey
-                  ${isActive ? "bg-gray-300 " : "text-gray-700"}`
+                  hover:bg-gray-500 hover:text-black
+                  ${isActive ? "bg-gray-500 " : "text-gray-700"}`
                 }
                 to={item.link}
               >
@@ -102,7 +102,6 @@ const Navmenu = ({ menus }) => {
                 {item.badge && <span className="menu-badge">{item.badge}</span>}
               </NavLink>
             )}
-
             {/* only for menulabel */}
             {item.isHeadr && !item.child && (
               <div className="menulabel">{item.title}</div>

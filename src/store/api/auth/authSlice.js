@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { v4 as uuidv4 } from "uuid";
 
-const storedUser = JSON.parse(localStorage.getItem("user"));
+const storedUser = JSON.parse(localStorage.getItem("user") || "null");
 
 export const authSlice = createSlice({
   name: "auth",

@@ -37,7 +37,11 @@ export const menuItems = [
     icon: "heroicons-outline:document",
     link: "/document-listing",
   },
-
+ {
+    title: "Generate Question",
+    icon: "heroicons-outline:document",
+    link: "/questions-listing",
+  },
   // {
   //   title: "Dashboard",
   //   icon: "heroicons-outline:home",

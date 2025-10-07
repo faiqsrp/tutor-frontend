@@ -58,7 +58,7 @@ const TutorListing = () => {
       try {
         const token = localStorage.getItem("token");
         await axios.delete(
-          `${import.meta.env.VITE_APP_BASE_URL}/user/admin-remove/${row._id}`,
+          `${process.env.VITE_APP_BASE_URL}/user/admin-remove/${row._id}`,
           { headers: { Authorization: `${token}` } }
         );
         toast.success("Tutor Deleted Successfully");
@@ -75,7 +75,7 @@ const TutorListing = () => {
         setLoading(true);
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `${import.meta.env.VITE_APP_BASE_URL}/user/Get-all?page=${page}&limit=${limit}`,
+          `${process.env.VITE_APP_BASE_URL}/user/Get-all?page=${page}&limit=${limit}`,
           { headers: { Authorization: `${token}` } }
         );
        const merged = (response.data.data || [])
@@ -249,7 +249,7 @@ const TutorListing = () => {
                     </tr>
                   ))}
                 </thead>
-                <tbody {...getTableBodyProps()} className="text-center">
+                <tbody {...getTableBodyProps()} className="text-left">
                   {loading ? (
                     <tr>
                       <td colSpan={COLUMNS.length + 1} className="py-10">

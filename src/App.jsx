@@ -138,6 +138,8 @@ import Sellers from "./pages/ecommerce/sellers";
 import AddProduct from "./pages/ecommerce/add-product";
 import InvoiceEPage from "./pages/ecommerce/invoice-ecompage";
 import AllStudentListing from "./pages/dashboard/allStudent/all-student-listing";
+import QuestionsListing from "./pages/dashboard/question/questions-listing";
+import AddQuestionsPage from "./pages/dashboard/question/[id]/add-question";
 
 
 function App() {
@@ -175,6 +177,9 @@ function App() {
           <Route path="add-tutor/:id" element={<AddTutorPage />} />
           <Route path="add-doc-type/add" element={<AddDocTypePage />} />
           <Route path="add-doc-type/:id" element={<AddDocTypePage />} />
+          <Route path="questions-listing" element={<QuestionsListing />} />
+          <Route path="add-question/:id" element={<AddQuestionsPage />} />
+          <Route path="add-question/add" element={<AddQuestionsPage />} />
           <Route path="ecommerce" element={<Ecommerce />} />
           <Route path="crm" element={<CrmPage />} />
           <Route path="project" element={<ProjectPage />} />
