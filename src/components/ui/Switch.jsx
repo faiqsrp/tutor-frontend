@@ -9,7 +9,7 @@ const Swicth = ({
   disabled,
   value,
   onChange,
-  activeClass = "bg-slate-900 dark:bg-slate-900",
+  activeClass = "bg-primary-700 dark:bg-slate-900",
   wrapperClass = " ",
   labelClass = "text-slate-500 dark:text-slate-400 text-sm leading-6",
   badge,
@@ -36,7 +36,7 @@ const Swicth = ({
         />
         <div
           className={`relative inline-flex h-6 w-[46px] ltr:mr-3 rtl:ml-3 items-center rounded-full transition-all duration-150
-          ${value ? activeClass : "bg-secondary-500"}
+          ${value ? activeClass : "bg-warning-300"}
           `}
         >
           {badge && value && (

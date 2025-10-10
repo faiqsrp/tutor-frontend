@@ -12,7 +12,6 @@ const GlobalFilter = ({ filter, setFilter }) => {
         value={value || ""}
         onChange={onChange}
         placeholder="search..."
-        className="h-12"
       />
     </div>
   );

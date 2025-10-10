@@ -77,9 +77,9 @@ const Header = ({ className = "custom-class" }) => {
                   onClick={() => setMenuCollapsed(!collapsed)}
                 >
                   {isRtl ? (
-                    <Icon icon="akar-icons:arrow-left" />
+                    <Icon icon="heroicons:bars-3" />
                   ) : (
-                    <Icon icon="akar-icons:arrow-right" />
+                    <Icon icon="heroicons:bars-3" />
                   )}
                 </button>
               )}

@@ -106,7 +106,7 @@ const AddTutor = () => {
       } else if (mode === "edit") {
         await axios.put(
           `${import.meta.env.VITE_APP_BASE_URL}/user/admin-update/${id}`,
-          { ...formData, editedBy: user?.name },
+          { ...formData},
           { headers: { Authorization: `${token}` } }
         );
       }
@@ -130,9 +130,9 @@ const AddTutor = () => {
               : "Add Tutor"
         }
       >
-        <form onSubmit={handleSubmit} className=" grid grid-cols-1 md:grid-cols-2 gap-8">
+        <form onSubmit={handleSubmit} >
           {/* Username */}
-          <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 gap-8">
             <div>
               <label className="block text-sm font-medium">Username</label>
               <input
@@ -183,8 +183,6 @@ const AddTutor = () => {
                 className="w-full border p-2 rounded"
               />
             </div>
-          </div>
-          <div className="space-y-6">
             {/* Name */}
             <div>
               <label className="block text-sm font-medium">Name</label>
@@ -226,8 +224,7 @@ const AddTutor = () => {
               )}
             </div>
           </div>
-        </form>
-         {/* Buttons */}
+           {/* Buttons */}
           <div className="flex justify-end gap-4 pt-6">
             <Button
               text="Cancel"
@@ -237,12 +234,13 @@ const AddTutor = () => {
             />
             {mode !== "view" && (
               <Button
-                text={mode === "edit" ? "Update Tutor" : "Add Tutor"}
+                text={mode === "edit" ? "Update" : "Add Tutor"}
                 className="btn-primary"
                 type="submit"
               />
             )}
           </div>
+        </form>
       </Card>
     </div>
 

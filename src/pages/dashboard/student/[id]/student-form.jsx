@@ -11,8 +11,8 @@ const StudentFormPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-const mode = location.state?.mode || "edit";
-const isViewMode = mode === "view";
+  const mode = location.state?.mode || "edit";
+  const isViewMode = mode === "view";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -25,7 +25,8 @@ const isViewMode = mode === "view";
   });
 
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState({});
+
 
   useEffect(() => {
     const fetchStudent = async () => {
@@ -68,7 +69,18 @@ const isViewMode = mode === "view";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isViewMode) return; // prevent submit in view mode
+    if (isViewMode) return;
+
+    // Validation
+    const newErrors = {};
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return; // stop submission
+    }
 
     try {
       const token = localStorage.getItem("token");
@@ -114,13 +126,19 @@ const isViewMode = mode === "view";
                   type="text"
                   name="name"
                   value={formData.name}
-                  onChange={handleInputChange}
-                  className={`border p-2 w-full rounded ${
-                    isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
-                  }`}
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    setErrors((prev) => ({ ...prev, name: "" })); // clear error on typing
+                  }}
+                  className={`border p-2 w-full rounded ${errors.name ? "border-red-500" : ""
+                    } ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""}`}
                   readOnly={isViewMode}
                 />
+                {errors.name && (
+                  <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                )}
               </div>
+
 
               {/* Email */}
               <div>
@@ -135,7 +153,7 @@ const isViewMode = mode === "view";
               </div>
 
               {/* Status */}
-              <div className="flex items-center space-x-2">
+              {/* <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
                   name="isActive"
@@ -145,7 +163,7 @@ const isViewMode = mode === "view";
                   disabled={isViewMode}
                 />
                 <label className="text-sm font-medium">Active</label>
-              </div>
+            </div> */}
             </div>
 
             {/* Profile picture */}
