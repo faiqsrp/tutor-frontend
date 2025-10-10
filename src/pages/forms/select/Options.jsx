@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Select, { components } from "react-select";
+import Select, { components } from "@/components/ui/Select";
 import makeAnimated from "react-select/animated";
 import Icon from "@/components/ui/Icon";
 

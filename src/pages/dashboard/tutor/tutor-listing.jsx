@@ -58,7 +58,7 @@ const TutorListing = () => {
       try {
         const token = localStorage.getItem("token");
         await axios.delete(
-          `${process.env.VITE_APP_BASE_URL}/user/admin-remove/${row._id}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/user/admin-remove/${row._id}`,
           { headers: { Authorization: `${token}` } }
         );
         toast.success("Tutor Deleted Successfully");
@@ -75,32 +75,36 @@ const TutorListing = () => {
         setLoading(true);
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `${process.env.VITE_APP_BASE_URL}/user/Get-all?page=${page}&limit=${limit}`,
+          `${import.meta.env.VITE_APP_BASE_URL}/user/Get-all?page=${page}&limit=${limit}`,
           { headers: { Authorization: `${token}` } }
         );
-       const merged = (response.data.data || [])
-        .filter((u) => u.type === "tutor" && !u.isDeleted)
-        .map((t) => ({
-          ...t,
-          createdBy: t.createdBy || loggedInUser?.name || "-",
-          updatedBy: t.updatedBy || loggedInUser?.name || "-",
-        }));
 
-      setTutors(merged);
-        // Set pagination details
+        // Filter tutors and merge createdBy/updatedBy
+        const merged = (response.data.data || [])
+          .filter((u) => u.type === "tutor" && !u.isDeleted)
+          .map((t) => ({
+            ...t,
+            createdBy: t.createdBy || loggedInUser?.name || "-",
+            updatedBy: t.updatedBy || loggedInUser?.name || "-",
+          }));
+
+        setTutors(merged);
+
+        // Pagination info
         if (response.data.pagination) {
-          const pagination = response.data.pagination;
-          setTotal(pagination.total);
-          setPage(pagination.page);
-          setLimit(pagination.limit);
-          setPages(pagination.totalPages);
+          const { total, page: currentPage, limit, totalPages } = response.data.pagination;
+          setTotal(total || 0);
+          setPage(currentPage || 1);
+          setLimit(limit || 10);
+          setPages(totalPages || 1);
         }
       } catch (error) {
         console.error("Error fetching tutors:", error);
       } finally {
-        setLoading(false); //  stop loading after fetch
+        setLoading(false);
       }
     };
+
     fetchTutors();
   }, [page, limit, loggedInUser?.name]);
 
@@ -114,7 +118,11 @@ const TutorListing = () => {
         ),
       },
       { Header: "Name", accessor: "name" },
-      { Header: "Email", accessor: "email" },
+      {
+        Header: "Email",
+        accessor: "email",
+        Cell: (row) => <span className="text-sm lowercase text-slate-600 dark:text-slate-300">{row?.cell?.value}</span>,
+      },
       { Header: "Username", accessor: "username" },
       {
         Header: "Tenant",
@@ -127,7 +135,7 @@ const TutorListing = () => {
         Cell: (row) => <span>{row.value ? "Yes" : "No"}</span>,
       },
       { Header: "Created By", accessor: "createdBy" },
-      { Header: "Edited By", accessor: "updatedBy" },
+      { Header: "Updated By", accessor: "updatedBy" },
       {
         Header: "Created At",
         accessor: "createdAt",
@@ -213,8 +221,13 @@ const TutorListing = () => {
           <div className="flex items-center gap-3">
             <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
             <Button
-              text="+ Create Tutor"
-              className="btn-primary"
+              text={
+                <>
+                  <span className="hidden sm:inline">+ Create Tutor</span>
+                  <span className="inline sm:hidden">+ Create</span>
+                </>
+              }
+              className="btn-primary py-2 px-3"
               type="button"
               onClick={() => navigate("/add-tutor/add")}
             />
@@ -288,29 +301,112 @@ const TutorListing = () => {
           </div>
         </div>
 
+      
         {/* Pagination */}
-        <div className="md:flex justify-between items-center mt-6">
-          <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            Page {page} of {pages} | Total {total} tutors
+        <div className="md:flex md:space-y-0 space-y-5 justify-between mt-6 items-center">
+          {/* Go to page */}
+          <div className="flex items-center gap-2 text-sm">
+          <span className="text-slate-700 dark:text-slate-300">
+            Go to page:
           </span>
+          <input
+            type="number"
+            min="1"
+            max={pages}
+            value={page}
+            onChange={(e) => {
+              const newPage = Number(e.target.value);
+              if (newPage >= 1 && newPage <= pages) setPage(newPage);
+            }}
+            className="w-16 border rounded-md px-2 py-1 text-center dark:bg-slate-800 dark:text-white"
+          />
+          <span className="text-slate-700 dark:text-slate-300">
+            Page <strong>{page}</strong> of {pages}
+          </span>
+          <span className="text-slate-700 dark:text-slate-300">
+            | Total {total} students
+          </span>
+        </div>
 
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+          {/* Page numbers and navigation */}
+          <ul className="flex items-center space-x-3 rtl:space-x-reverse">
+            {/* First Page */}
+            <li>
+              <button
+                className={`${page === 1 ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => setPage(1)}
+                disabled={page === 1}
+              >
+                <Icon icon="heroicons:chevron-double-left-solid" />
+              </button>
+            </li>
+
+            {/* Previous */}
+            <li>
+              <button
+                className={`px-3 py-1 bg-gray-200 rounded ${page === 1 ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                Prev
+              </button>
+            </li>
+
+            {/* Page Numbers */}
+            {Array.from({ length: pages }, (_, i) => i + 1).map((num) => (
+              <li key={num}>
+                <button
+                  className={`text-sm rounded px-3 py-1 ${num === page
+                    ? "bg-slate-900 text-white dark:bg-slate-600 dark:text-slate-200 font-medium"
+                    : "bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-slate-400 font-normal"
+                    }`}
+                  onClick={() => setPage(num)}
+                >
+                  {num}
+                </button>
+              </li>
+            ))}
+
+            {/* Next */}
+            <li>
+              <button
+                className={`px-3 py-1 bg-gray-200 rounded ${page === pages ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => setPage((p) => Math.min(pages, p + 1))}
+                disabled={page === pages}
+              >
+                Next
+              </button>
+            </li>
+
+            {/* Last Page */}
+            <li>
+              <button
+                className={`${page === pages ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => setPage(pages)}
+                disabled={page === pages}
+              >
+                <Icon icon="heroicons:chevron-double-right-solid" />
+              </button>
+            </li>
+          </ul>
+
+          {/* Page size selector */}
+          <div className="flex items-center space-x-3 rtl:space-x-reverse">
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Show</span>
+            <select
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
+              className="form-select py-2"
             >
-              Prev
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(pages, p + 1))}
-              disabled={page === pages}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-            >
-              Next
-            </button>
+              {[5, 10, 20, 30, 40].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
+
       </Card>
     </div>
   );

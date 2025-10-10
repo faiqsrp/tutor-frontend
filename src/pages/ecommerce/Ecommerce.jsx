@@ -14,7 +14,7 @@ import {
 import ProductList from "@/components/partials/ecommerce/product-list";
 import CheckboxSingle from "@/components/partials/ecommerce/checkbox-single";
 import clsx from "clsx";
-import Select from "react-select";
+import Select from "@/components/ui/Select";
 import { useGetProductsQuery } from "@/store/api/shop/shopApiSlice";
 import {
   updateSearchFilter,

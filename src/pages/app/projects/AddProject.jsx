@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Select, { components } from "react-select";
+import Select, { components } from "@/components/ui/Select";
 import Modal from "@/components/ui/Modal";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleAddModal, pushProject } from "./store";

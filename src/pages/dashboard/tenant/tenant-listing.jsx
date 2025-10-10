@@ -39,7 +39,7 @@ const TenantListing = () => {
   // Pagination states
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit, setLimit] = useState(10);
   const [pages, setPages] = useState(1);
 
   // Handle row actions
@@ -93,10 +93,13 @@ const TenantListing = () => {
 
         setTenants(merged);
 
-        const pagination = response.data.pagination;
-        setTotal(pagination.total);
-        setPage(pagination.page);
-        setPages(pagination.totalPages);
+        if (response.data.pagination) {
+          const { total, page: currentPage, limit: apiLimit, totalPages } = response.data.pagination;
+          setTotal(total || 0);
+          setPage(currentPage || 1);
+          setLimit(apiLimit || 10);
+          setPages(totalPages || 1);
+        }
       } catch (error) {
         console.error("Error fetching tenants:", error);
       } finally {
@@ -112,23 +115,25 @@ const TenantListing = () => {
       {
         Header: "S.No",
         id: "serialNo",
-        Cell: (row) => (
-          <span>{row.row.index + 1 + (page - 1) * limit}</span>
-        ),
+       Cell: (row) => <span>{row.row.index + 1 + (page - 1) * limit}</span>
       },
       { Header: "Name", accessor: "name" },
-      { Header: "Email", accessor: "email" },
+      {
+        Header: "Email",
+        accessor: "email",
+        Cell: (row) => <span className="text-sm lowercase text-slate-600 dark:text-slate-300">{row?.cell?.value}</span>,
+      },
       { Header: "Phone", accessor: "phone" },
       { Header: "Address", accessor: "address" },
-      { Header: "Created By", accessor: "createdBy" },
-      { Header: "Edited By", accessor: "updatedBy" },
+      { Header: "Created By", accessor: "createdBy.name" },
+      { Header: "Updated By", accessor: "updatedBy.name" },
       {
         Header: "Status",
         accessor: "isActive",
         Cell: (row) => (
           <span
             className={`inline-block px-3 min-w-[90px] text-center mx-auto py-1 rounded-full bg-opacity-25 ${row?.cell?.value
-              ? "text-success-500 bg-success-500"
+              ? "text-white bg-primary-700"
               : "text-danger-500 bg-danger-500"
               }`}
           >
@@ -220,8 +225,13 @@ const TenantListing = () => {
           <div className="flex items-center gap-3">
             <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
             <Button
-              text="+ Create Tenant"
-              className="btn-primary"
+              text={
+                <>
+                  <span className="hidden sm:inline">+ Create tenant</span>
+                  <span className="inline sm:hidden">+ Create</span>
+                </>
+              }
+              className="btn-primary py-2 px-3"
               type="button"
               onClick={() => navigate("/add-tenant/add")}
             />
@@ -297,26 +307,91 @@ const TenantListing = () => {
         </div>
 
         {/* Pagination */}
-        <div className="md:flex justify-between items-center mt-6">
-          <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            Page {page} of {pages} | Total {total} tenants
+        <div className="md:flex md:space-y-0 space-y-5 justify-between mt-6 items-center">
+          {/* Go to page */}
+         <div className="flex items-center gap-2 text-sm">
+          <span className="text-slate-700 dark:text-slate-300">
+            Go to page:
           </span>
+          <input
+            type="number"
+            min="1"
+            max={pages}
+            value={page}
+            onChange={(e) => {
+              const newPage = Number(e.target.value);
+              if (newPage >= 1 && newPage <= pages) setPage(newPage);
+            }}
+            className="w-16 border rounded-md px-2 py-1 text-center dark:bg-slate-800 dark:text-white"
+          />
+          <span className="text-slate-700 dark:text-slate-300">
+            Page <strong>{page}</strong> of {pages}
+          </span>
+          <span className="text-slate-700 dark:text-slate-300">
+            | Total {total} students
+          </span>
+        </div>
 
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+          {/* Page numbers and navigation */}
+          <ul className="flex items-center space-x-3 rtl:space-x-reverse">
+            {/* First Page */}
+            <li className="text-xl text-slate-900 dark:text-white rtl:rotate-180">
+              <button onClick={() => setPage(1)} disabled={page === 1}>
+                <Icon icon="heroicons:chevron-double-left-solid" />
+              </button>
+            </li>
+
+            {/* Previous */}
+            <li>
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                Prev
+              </button>
+            </li>
+
+            {/* Page Numbers */}
+            {Array.from({ length: pages }, (_, i) => i + 1).map((num) => (
+              <li key={num}>
+                <button
+                  className={`text-sm rounded px-3 py-1 ${num === page
+                    ? "bg-slate-900 text-white dark:bg-slate-600 dark:text-slate-200 font-medium"
+                    : "bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-slate-400 font-normal"
+                    }`}
+                  onClick={() => setPage(num)}
+                >
+                  {num}
+                </button>
+              </li>
+            ))}
+
+            {/* Next */}
+            <li>
+              <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page === pages}>
+                Next
+              </button>
+            </li>
+
+            {/* Last Page */}
+            <li className="text-xl text-slate-900 dark:text-white rtl:rotate-180">
+              <button onClick={() => setPage(pages)} disabled={page === pages}>
+                <Icon icon="heroicons:chevron-double-right-solid" />
+              </button>
+            </li>
+          </ul>
+
+          {/* Page size selector */}
+          <div className="flex items-center space-x-3 rtl:space-x-reverse">
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Show</span>
+            <select
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
+              className="form-select py-2"
             >
-              Prev
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(pages, p + 1))}
-              disabled={page === pages}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-            >
-              Next
-            </button>
+              {[5, 10, 20, 30, 40].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </Card>
