@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Select, { components } from "@/components/ui/Select";
+import Select from "@/components/ui/Select";
+import { components } from "react-select";
 import Modal from "@/components/ui/Modal";
 import { useSelector, useDispatch } from "react-redux";
 import { updateTask, toggleEditModal } from "./store";
