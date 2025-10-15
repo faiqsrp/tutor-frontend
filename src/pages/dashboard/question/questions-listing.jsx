@@ -1,9 +1,11 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
 import GlobalFilter from "../../table/react-tables/GlobalFilter";
+import axios from "axios";
+import { toast } from "react-toastify";
 import {
   useTable,
   useRowSelect,
@@ -25,31 +27,56 @@ const IndeterminateCheckbox = React.forwardRef(
 
 const QuestionsListing = () => {
   const navigate = useNavigate();
-  const [questions, setQuestions] = useState([
-    {
-      id: 1,
-      question: "What is React?",
-      answer: "React is a JavaScript library for building UI.",
-      createdAt: new Date(),
-    },
-    {
-      id: 2,
-      question: "What is useState?",
-      answer: "useState is a React hook that lets you manage state.",
-      createdAt: new Date(),
-    },
-  ]);
-
+  const [questions, setQuestions] = useState([]);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
 
-  const handleAction = (action, row) => {
-    if (action === "edit") navigate(`/add-question/${row.id}`, { state: { mode: "edit" } });
-    if (action === "view") navigate(`/add-question/${row.id}`, { state: { mode: "view" } });
-    if (action === "delete") {
-      setQuestions((prev) => prev.filter((q) => q.id !== row.id));
+  // Fetch questions from API
+  const fetchQuestions = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_APP_BASE_URL}/questions/all`,
+        {
+          headers: {
+            Authorization: `${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setQuestions(res.data.data || []);
+    } catch (error) {
+      toast.error("Failed to fetch questions");
     }
   };
+
+
+  useEffect(() => {
+    fetchQuestions();
+  }, []);
+
+  const handleAction = async (action, row) => {
+    if (action === "view")
+      navigate(`/add-question/${row._id}`, { state: { mode: "view" } });
+
+    if (action === "delete") {
+      if (window.confirm("Are you sure you want to delete this question?")) {
+        try {
+          await axios.delete(
+            `${import.meta.env.VITE_APP_BASE_URL}/delete/${row._id}`,
+            {
+              headers: {
+                Authorization: `${localStorage.getItem("token")}`,
+              },
+            }
+          );
+          toast.success("Question deleted successfully!");
+          fetchQuestions();
+        } catch {
+          toast.error("Failed to delete question");
+        }
+      }
+    }
+  };
+
 
   const COLUMNS = useMemo(
     () => [
@@ -81,6 +108,11 @@ const QuestionsListing = () => {
         ),
       },
       {
+        Header: "Paper Type",
+        accessor: "paperType",
+        Cell: (row) => <span>{row.cell.value || "N/A"}</span>,
+      },
+      {
         Header: "Created At",
         accessor: "createdAt",
         Cell: (row) => (
@@ -92,13 +124,16 @@ const QuestionsListing = () => {
         accessor: "action",
         Cell: ({ row }) => (
           <div className="flex space-x-3">
-            <button className="action-btn" onClick={() => handleAction("view", row.original)}>
+            <button
+              className="action-btn"
+              onClick={() => handleAction("view", row.original)}
+            >
               <Icon icon="heroicons:eye" />
             </button>
-            <button className="action-btn" onClick={() => handleAction("edit", row.original)}>
-              <Icon icon="heroicons:pencil-square" />
-            </button>
-            <button className="action-btn" onClick={() => handleAction("delete", row.original)}>
+            <button
+              className="action-btn"
+              onClick={() => handleAction("delete", row.original)}
+            >
               <Icon icon="heroicons:trash" />
             </button>
           </div>
