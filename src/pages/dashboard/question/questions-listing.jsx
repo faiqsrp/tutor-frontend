@@ -13,6 +13,7 @@ import {
   useGlobalFilter,
   usePagination,
 } from "react-table";
+import Icons from "@/components/ui/Icon";
 
 const IndeterminateCheckbox = React.forwardRef(
   ({ indeterminate, ...rest }, ref) => {
@@ -28,30 +29,37 @@ const IndeterminateCheckbox = React.forwardRef(
 const QuestionsListing = () => {
   const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
-  const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  const [loading, setLoading] = useState(false);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [pageCount, setPageCount] = useState(0);
 
-  // Fetch questions from API
+  // Fetch questions with pagination
   const fetchQuestions = async () => {
+    setLoading(true);
     try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_APP_BASE_URL}/questions/all`,
-        {
-          headers: {
-            Authorization: `${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const res = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/questions/all`, {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+        },
+        params: {
+          page: pageIndex + 1, 
+          limit: pageSize,
+        },
+      });
+
       setQuestions(res.data.data || []);
+      setPageCount(res.data.pagination?.totalPages || 1);
     } catch (error) {
       toast.error("Failed to fetch questions");
+    } finally {
+      setLoading(false);
     }
   };
 
-
   useEffect(() => {
     fetchQuestions();
-  }, []);
+  }, [pageIndex, pageSize]);
 
   const handleAction = async (action, row) => {
     if (action === "view")
@@ -60,14 +68,11 @@ const QuestionsListing = () => {
     if (action === "delete") {
       if (window.confirm("Are you sure you want to delete this question?")) {
         try {
-          await axios.delete(
-            `${import.meta.env.VITE_APP_BASE_URL}/delete/${row._id}`,
-            {
-              headers: {
-                Authorization: `${localStorage.getItem("token")}`,
-              },
-            }
-          );
+          await axios.delete(`${import.meta.env.VITE_APP_BASE_URL}/delete/${row._id}`, {
+            headers: {
+              Authorization: `${localStorage.getItem("token")}`,
+            },
+          });
           toast.success("Question deleted successfully!");
           fetchQuestions();
         } catch {
@@ -77,20 +82,19 @@ const QuestionsListing = () => {
     }
   };
 
-
   const COLUMNS = useMemo(
     () => [
       {
         Header: "S.No",
         id: "serialNo",
-        Cell: (row) => <span>{row.row.index + 1 + (page - 1) * limit}</span>,
+        Cell: (row) => <span>{row.row.index + 1 + pageIndex * pageSize}</span>,
       },
       {
         Header: "Question",
         accessor: "question",
         Cell: (row) => (
           <span>
-            {row.cell.value.length > 30
+            {row.cell.value?.length > 30
               ? row.cell.value.substring(0, 30) + "..."
               : row.cell.value}
           </span>
@@ -101,7 +105,7 @@ const QuestionsListing = () => {
         accessor: "answer",
         Cell: (row) => (
           <span>
-            {row.cell.value.length > 30
+            {row.cell.value?.length > 30
               ? row.cell.value.substring(0, 30) + "..."
               : row.cell.value}
           </span>
@@ -134,19 +138,25 @@ const QuestionsListing = () => {
               className="action-btn"
               onClick={() => handleAction("delete", row.original)}
             >
-              <Icon icon="heroicons:trash" />
+              <Icon icon="heroicons:trash" className="text-red-600" />
             </button>
           </div>
         ),
       },
     ],
-    [page, limit]
+    [pageIndex, pageSize]
   );
 
   const data = useMemo(() => questions, [questions]);
 
   const tableInstance = useTable(
-    { columns: COLUMNS, data },
+    {
+      columns: COLUMNS,
+      data,
+      manualPagination: true,
+      pageCount,
+      initialState: { pageIndex: 0, pageSize: 10 },
+    },
     useGlobalFilter,
     useSortBy,
     usePagination,
@@ -158,7 +168,9 @@ const QuestionsListing = () => {
           Header: ({ getToggleAllRowsSelectedProps }) => (
             <IndeterminateCheckbox {...getToggleAllRowsSelectedProps()} />
           ),
-          Cell: ({ row }) => <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />,
+          Cell: ({ row }) => (
+            <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />
+          ),
         },
         ...columns,
       ]);
@@ -169,13 +181,19 @@ const QuestionsListing = () => {
     getTableProps,
     getTableBodyProps,
     headerGroups,
-    page: tablePage,
+    page,
     prepareRow,
+    nextPage,
+    previousPage,
+    canNextPage,
+    canPreviousPage,
+    pageOptions,
+    gotoPage,
     state,
     setGlobalFilter,
   } = tableInstance;
 
-  const { globalFilter } = state;
+  const { globalFilter, pageIndex: currentPageIndex } = state;
 
   return (
     <div>
@@ -186,7 +204,7 @@ const QuestionsListing = () => {
             <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
             <Button
               text="+ Add Question"
-              className="btn-primary"
+              className="btn-primary h-10"
               onClick={() => navigate("/add-question/add")}
             />
           </div>
@@ -214,8 +232,14 @@ const QuestionsListing = () => {
             </thead>
 
             <tbody {...getTableBodyProps()} className="text-left">
-              {tablePage.length > 0 ? (
-                tablePage.map((row) => {
+              {loading ? (
+                <tr>
+                  <td colSpan={COLUMNS.length + 1} className="py-6 text-center">
+                    Loading...
+                  </td>
+                </tr>
+              ) : page.length > 0 ? (
+                page.map((row) => {
                   prepareRow(row);
                   return (
                     <tr {...row.getRowProps()}>
@@ -236,6 +260,85 @@ const QuestionsListing = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="md:flex justify-between items-center mt-6">
+          <div className="flex items-center space-x-3">
+            <span>
+              Page {pageIndex + 1} of {pageCount}
+            </span>
+          </div>
+
+          <ul className="flex items-center space-x-3">
+            <li>
+              <button
+                className={`${!canPreviousPage ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => gotoPage(0)}
+                disabled={!canPreviousPage}
+              >
+                <Icons icon="heroicons:chevron-double-left-solid" />
+              </button>
+            </li>
+            <li>
+              <button
+                className={`${!canPreviousPage ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => previousPage()}
+                disabled={!canPreviousPage}
+              >
+                Prev
+              </button>
+            </li>
+
+            {pageOptions.map((page, idx) => (
+              <li key={idx}>
+                <button
+                  onClick={() => gotoPage(idx)}
+                  className={`${
+                    idx === pageIndex
+                      ? "bg-slate-900 text-white"
+                      : "bg-slate-100 text-slate-900"
+                  } px-2 py-1 rounded`}
+                >
+                  {page + 1}
+                </button>
+              </li>
+            ))}
+
+            <li>
+              <button
+                className={`${!canNextPage ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => nextPage()}
+                disabled={!canNextPage}
+              >
+                Next
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => gotoPage(pageCount - 1)}
+                disabled={!canNextPage}
+                className={`${!canNextPage ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <Icon icon="heroicons:chevron-double-right-solid" />
+              </button>
+            </li>
+          </ul>
+
+          <div className="flex items-center space-x-3">
+            <span>Show</span>
+            <select
+              value={pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+              className="form-select py-2"
+            >
+              {[10, 20, 30, 40, 50].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </Card>
     </div>
