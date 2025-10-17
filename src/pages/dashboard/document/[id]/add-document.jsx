@@ -93,10 +93,10 @@ const AddDocumentPage = () => {
 
     try {
       const form = new FormData();
-      form.append("images", file);
+      form.append("documentFile", file);
 
       const res = await axios.post(
-        `${import.meta.env.VITE_APP_BASE_URL}/upload/image`,
+        `${import.meta.env.VITE_APP_BASE_URL}/upload/upload`,
         form,
         {
           headers: {
@@ -105,7 +105,7 @@ const AddDocumentPage = () => {
         }
       );
 
-      const uploadedPath = res.data?.data?.[0] || "";
+      const uploadedPath = res.data?.data || "";
 
       setFormData((prev) => ({
         ...prev,
@@ -252,10 +252,18 @@ const AddDocumentPage = () => {
                 />
 
                 {formData.documentUpload && (
-                  <p className="mt-2 text-sm text-gray-600">
-                    {formData.documentUpload.split("\\").pop().split("/").pop()}
-                  </p>
+                  <a
+                    href={formData.documentUpload}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 text-sm text-gray-700 hover:text-blue-600 cursor-pointer"
+                    style={{ textDecoration: "none" }}
+                  >
+                    {formData.documentUpload.split("/").pop()}
+                  </a>
                 )}
+
+
                 {errors.documentUpload && <p className="text-red-500 text-sm mt-1">{errors.documentUpload}</p>}
               </div>
             )}
