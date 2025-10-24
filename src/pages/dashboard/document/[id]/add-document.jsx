@@ -39,7 +39,7 @@ const AddDocumentPage = () => {
         );
         setDocTypes(res.data.data || []);
       } catch (err) {
-        toast.error("Error fetching document types", err);
+        toast.error("Error fetching document types");
       }
     };
     fetchDocTypes();
@@ -65,7 +65,6 @@ const AddDocumentPage = () => {
           documentPage: doc.documentPage || "NA",
         });
       } catch (error) {
-        toast.error("Error fetching document:", error);
         toast.error("Error loading document data");
       } finally {
         setLoading(false);
@@ -112,21 +111,34 @@ const AddDocumentPage = () => {
         documentUpload: uploadedPath,
       }));
     } catch (error) {
-      toast.error("File upload error:", error);
+      toast.error("File upload error");
     }
   };
+
+  // 🔹 Determine selected document type and check if it's "Video Lectures"
+  const selectedDocType = docTypes.find(
+    (type) => type._id === formData.documentType
+  );
+  const isVideoLecture =
+    selectedDocType?.documentType?.toLowerCase() === "video lectures";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isViewMode) return;
 
-    // Validation
     const newErrors = {};
     if (!formData.title.trim()) newErrors.title = "Title is required";
-    if (!formData.documentType.trim()) newErrors.documentType = "Document type is required";
-    if (!formData.documnetBrief.trim()) newErrors.documnetBrief = "Document brief is required";
-    if (!formData.documentURL.trim()) newErrors.documentURL = "Document URL is required";
-    if (!formData.documentUpload.trim()) newErrors.documentUpload = "Please upload a document";
+    if (!formData.documentType.trim())
+      newErrors.documentType = "Document type is required";
+    if (!formData.documnetBrief.trim())
+      newErrors.documnetBrief = "Document brief is required";
+
+    // ✅ Only validate documentURL if "Video Lectures"
+    if (isVideoLecture && !formData.documentURL.trim())
+      newErrors.documentURL = "Document URL is required for video lectures";
+
+    if (!formData.documentUpload.trim())
+      newErrors.documentUpload = "Please upload a document";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -140,14 +152,24 @@ const AddDocumentPage = () => {
         await axios.put(
           `${import.meta.env.VITE_APP_BASE_URL}/documents/update/${id}`,
           formData,
-          { headers: { "Content-Type": "application/json", Authorization: `${token}` } }
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `${token}`,
+            },
+          }
         );
         toast.success("Document updated successfully!");
       } else {
         await axios.post(
           `${import.meta.env.VITE_APP_BASE_URL}/documents/create`,
           formData,
-          { headers: { "Content-Type": "application/json", Authorization: `${token}` } }
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `${token}`,
+            },
+          }
         );
         toast.success("Document created successfully!");
       }
@@ -167,8 +189,8 @@ const AddDocumentPage = () => {
           isViewMode
             ? "View Document"
             : isEditMode
-              ? "Edit Document"
-              : "Add Document"
+            ? "Edit Document"
+            : "Add Document"
         }
       >
         <form onSubmit={handleSubmit} className="p-4">
@@ -181,29 +203,58 @@ const AddDocumentPage = () => {
                 name="title"
                 value={formData.title}
                 onChange={handleInputChange}
-                className={`border p-2 w-full rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
-                  }`}
+                className={`border p-2 w-full rounded ${
+                  isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
+                }`}
                 readOnly={isViewMode}
               />
-              {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+              {errors.title && (
+                <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+              )}
             </div>
 
             {/* Document Type */}
             <div>
-              <label className="block text-sm font-medium mb-1">Document Type</label>
+              <label className="block text-sm font-medium mb-1">
+                Document Type
+              </label>
               <Select
                 name="documentType"
-                value={docTypes
-                  .map(type => ({ value: type._id, label: type.documentType }))
-                  .find(option => option.value === formData.documentType) || null}
-                onChange={(selectedOption) =>
-                  setFormData(prev => ({ ...prev, documentType: selectedOption?.value || "" }))
+                value={
+                  docTypes
+                    .map((type) => ({
+                      value: type._id,
+                      label: type.documentType,
+                    }))
+                    .find(
+                      (option) => option.value === formData.documentType
+                    ) || null
                 }
-                options={docTypes.map(type => ({ value: type._id, label: type.documentType }))}
+                onChange={(selectedOption) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    documentType: selectedOption?.value || "",
+                    // 🔹 Clear documentURL if not Video Lectures
+                    documentURL:
+                      selectedOption?.label?.toLowerCase() ===
+                      "video lectures"
+                        ? prev.documentURL
+                        : "",
+                  }));
+                  setErrors((prev) => ({ ...prev, documentType: "" }));
+                }}
+                options={docTypes.map((type) => ({
+                  value: type._id,
+                  label: type.documentType,
+                }))}
                 isDisabled={isViewMode}
                 placeholder="Select Type"
               />
-              {errors.documentType && <p className="text-red-500 text-sm mt-1">{errors.documentType}</p>}
+              {errors.documentType && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.documentType}
+                </p>
+              )}
             </div>
 
             {/* Document Brief */}
@@ -215,29 +266,41 @@ const AddDocumentPage = () => {
                 name="documnetBrief"
                 value={formData.documnetBrief}
                 onChange={handleInputChange}
-                className={`border p-2 w-full h-10 rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
-                  }`}
+                className={`border p-2 w-full h-10 rounded ${
+                  isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
+                }`}
                 readOnly={isViewMode}
               />
-              {errors.documnetBrief && <p className="text-red-500 text-sm mt-1">{errors.documnetBrief}</p>}
+              {errors.documnetBrief && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.documnetBrief}
+                </p>
+              )}
             </div>
 
-            {/* Document URL */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Document URL
-              </label>
-              <input
-                type="text"
-                name="documentURL"
-                value={formData.documentURL}
-                onChange={handleInputChange}
-                className={`border p-2 w-full rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
+            {/* ✅ Document URL — only visible for Video Lectures */}
+            {isVideoLecture && (
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Document URL
+                </label>
+                <input
+                  type="text"
+                  name="documentURL"
+                  value={formData.documentURL}
+                  onChange={handleInputChange}
+                  className={`border p-2 w-full rounded ${
+                    isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
                   }`}
-                readOnly={isViewMode}
-              />
-              {errors.documentURL && <p className="text-red-500 text-sm mt-1">{errors.documentURL}</p>}
-            </div>
+                  readOnly={isViewMode}
+                />
+                {errors.documentURL && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.documentURL}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* File Upload */}
             {!isViewMode && (
@@ -250,7 +313,6 @@ const AddDocumentPage = () => {
                   onChange={handleFileChange}
                   accept="image/*,.pdf,.doc,.docx"
                 />
-
                 {formData.documentUpload && (
                   <a
                     href={formData.documentUpload}
@@ -262,41 +324,52 @@ const AddDocumentPage = () => {
                     {formData.documentUpload.split("/").pop()}
                   </a>
                 )}
-
-
-                {errors.documentUpload && <p className="text-red-500 text-sm mt-1">{errors.documentUpload}</p>}
+                {errors.documentUpload && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.documentUpload}
+                  </p>
+                )}
               </div>
             )}
 
             {/* Select Paper */}
             <div>
-              <label className="block text-sm font-medium mb-1">Select Paper</label>
+              <label className="block text-sm font-medium mb-1">
+                Select Paper
+              </label>
               <Select
                 name="documentPage"
                 value={[
                   { value: "NA", label: "NA" },
                   { value: "Page1", label: "Paper 1" },
-                  { value: "Page2", label: "Paper 2" }
-                ].find(option => option.value === formData.documentPage)}
+                  { value: "Page2", label: "Paper 2" },
+                ].find((option) => option.value === formData.documentPage)}
                 onChange={(selectedOption) =>
-                  setFormData(prev => ({ ...prev, documentPage: selectedOption?.value || "NA" }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    documentPage: selectedOption?.value || "NA",
+                  }))
                 }
                 options={[
                   { value: "NA", label: "NA" },
                   { value: "Page1", label: "Paper 1" },
-                  { value: "Page2", label: "Paper 2" }
+                  { value: "Page2", label: "Paper 2" },
                 ]}
                 isDisabled={isViewMode}
                 placeholder="Select Paper"
               />
-              {errors.documentPage && <p className="text-red-500 text-sm mt-1">{errors.documentPage}</p>}
+              {errors.documentPage && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.documentPage}
+                </p>
+              )}
             </div>
-
           </div>
+
           <div className="flex justify-end gap-4 pt-6">
             <Button
               text="Cancel"
-              className="btn-light "
+              className="btn-light"
               type="button"
               onClick={() => navigate("/document-listing")}
             />
