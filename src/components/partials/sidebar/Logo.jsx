@@ -1,41 +1,72 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/Icon";
 import useDarkMode from "@/hooks/useDarkMode";
 import useSidebar from "@/hooks/useSidebar";
 import useSemiDark from "@/hooks/useSemiDark";
 import useSkin from "@/hooks/useSkin";
 
-// import images
 import MobileLogo from "@/assets/images/logo/logo.png";
 import MobileLogoWhite from "@/assets/images/logo/logo.png";
 
 const SidebarLogo = ({ menuHover }) => {
   const [isDark] = useDarkMode();
   const [collapsed, setMenuCollapsed] = useSidebar();
-  // semi dark
   const [isSemiDark] = useSemiDark();
-  // skin
   const [skin] = useSkin();
+  const navigate = useNavigate();
+
+  const handleLogoClick = () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user || !user.type) {
+        navigate("/login");
+        return;
+      }
+
+      switch (user.type) {
+        case "admin":
+          navigate("/tenant-listing");
+          break;
+        case "tutor":
+          navigate("/student-listing");
+          break;
+        case "student":
+          navigate("/studentdashboard");
+          break;
+        default:
+          navigate("/login");
+          break;
+      }
+    } catch (err) {
+      console.error("Error navigating by role:", err);
+      navigate("/login");
+    }
+  };
+
   return (
     <div
-      className={` logo-segment flex justify-between items-center bg-white dark:bg-slate-800 z-[9] py-6  px-4 
+      className={`logo-segment flex justify-between items-center bg-white dark:bg-slate-800 z-[9] py-6 px-4 
       ${menuHover ? "logo-hovered" : ""}
-      ${skin === "bordered"
-          ? " border-b border-r-0 border-slate-200 dark:border-slate-700"
-          : " border-none"
-        }
+      ${
+        skin === "bordered"
+          ? "border-b border-r-0 border-slate-200 dark:border-slate-700"
+          : "border-none"
+      }
       `}
     >
-      <Link to="/dashboard">
-        <div className="flex justify-center items-center w-full">
-          {!isDark && !isSemiDark ? (
-            <img src={MobileLogo} alt="logo" className="w-44 h-24 object-cover" />
-          ) : (
-            <img src={MobileLogoWhite} alt="logo" className="w-40 h-20 object-contain" />
-          )}
-        </div>
-      </Link>
+      <div
+        onClick={handleLogoClick}
+        className="flex justify-center items-center w-full cursor-pointer"
+      >
+        <img
+          src={!isDark && !isSemiDark ? MobileLogo : MobileLogoWhite}
+          alt="logo"
+          className={`object-contain transition-all duration-300 ${
+            collapsed ? "w-[80%]" : "w-full"
+          }`}
+        />
+      </div>
 
       {(!collapsed || menuHover) && (
         <div

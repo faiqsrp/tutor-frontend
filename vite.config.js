@@ -14,7 +14,6 @@ export default defineConfig({
       },
     ],
   },
-
   plugins: [
     rollupReplace({
       preventAssignment: true,
@@ -26,8 +25,4 @@ export default defineConfig({
     react(),
     reactRefresh(),
   ],
-
-   server: {
-    port: 3000, 
-  },
 });

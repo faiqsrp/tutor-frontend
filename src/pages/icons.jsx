@@ -13,6 +13,9 @@ const icons = [
     name: "heroicons:adjustments-vertical",
   },
   {
+    name: "heroicons:bars-3",
+  },
+  {
     name: "heroicons:archive-box",
   },
   {
@@ -105,6 +108,7 @@ const icons = [
   {
     name: "heroicons:pencil-square",
   },
+  { name: "heroicons:question-mark-circle" },
   { name: "heroicons:rectangle-stack" },
   { name: "heroicons:rocket-launch" },
   { name: "heroicons:window" },
@@ -131,11 +135,10 @@ const IconPage = () => {
         <li key={i}>
           <Tooltip placement="top" arrow content={item.name}>
             <div
-              className={`rounded-md bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xl  py-3 px-4 ${
-                skin === "bordered"
+              className={`rounded-md bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xl  py-3 px-4 ${skin === "bordered"
                   ? " border border-gray-5002 dark:border-slate-700"
                   : "shadow-base"
-              }`}
+                }`}
             >
               <Icon icon={item.name} />
             </div>

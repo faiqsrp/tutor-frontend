@@ -137,9 +137,9 @@ const DocumentListing = () => {
       },
       {
         Header: "Document",
-        accessor: "documentFile", // <-- make sure your backend returns a file path or URL here
+        accessor: "documentFile", 
         Cell: ({ row }) => {
-          const fileUrl = row.original?.documentFile; // Adjust key if different
+          const fileUrl = row.original?.documentFile; 
           return fileUrl ? (
             <a
               href={fileUrl.startsWith("http") ? fileUrl : `${import.meta.env.VITE_APP_BASE_URL}/${fileUrl}`}
@@ -266,12 +266,16 @@ const DocumentListing = () => {
       <Card noborder>
         <div className="md:flex justify-between items-center mb-6">
           <h4 className="card-title">Documents</h4>
-
           <div className="flex items-center gap-4">
             <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
             <Button
-              text="+ Create Document"
-              className="btn-primary"
+               text={
+                <>
+                  <span className="hidden sm:inline">+ Create Document </span>
+                  <span className="inline sm:hidden">+ Create</span>
+                </>
+              }
+              className="btn-primary py-2 px-3"
               type="button"
               onClick={() => navigate("/add-document/add")}
             />

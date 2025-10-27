@@ -140,6 +140,7 @@ import InvoiceEPage from "./pages/ecommerce/invoice-ecompage";
 import AllStudentListing from "./pages/dashboard/allStudent/all-student-listing";
 import QuestionsListing from "./pages/dashboard/question/questions-listing";
 import AddQuestionsPage from "./pages/dashboard/question/[id]/add-question";
+import EditProfilePage from "./pages/utility/edit-profile";
 
 
 function App() {
@@ -241,6 +242,7 @@ function App() {
           <Route path="faq" element={<FaqPage />} />
           <Route path="settings" element={<Settings />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="edit-profile" element={<EditProfilePage/>} />
           <Route path="basic" element={<BasicWidget />} />
           <Route path="statistic" element={<StatisticWidget />} />
           <Route path="icons" element={<IconPage />} />

@@ -13,6 +13,7 @@ import {
 } from "react-table";
 import GlobalFilter from "../../table/react-tables/GlobalFilter";
 import Loader from "@/assets/images/logo/logo.png";
+import { toast } from "react-toastify";
 
 const IndeterminateCheckbox = React.forwardRef(
   ({ indeterminate, ...rest }, ref) => {
@@ -36,7 +37,7 @@ const DocTypeListing = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [pages, setPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const handleAction = async (action, row) => {
     if (action === "edit") {
@@ -54,41 +55,45 @@ const DocTypeListing = () => {
         );
         toast.success("DocType deleted successfully");
         setDocTypes((prev) => prev.filter((d) => d._id !== row._id));
+        // refetch data after delete
+        fetchDocTypes();
       } catch (err) {
         console.error("Error deleting doc type:", err);
       }
     }
   };
 
-  useEffect(() => {
-    const fetchDocTypes = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("token");
-        const res = await axios.get(
-          `${import.meta.env.VITE_APP_BASE_URL}/document-types/GetAll?page=${page}&limit=${limit}`,
-          { headers: { Authorization: `${token}` } }
-        );
+  const fetchDocTypes = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const res = await axios.get(
+        `${import.meta.env.VITE_APP_BASE_URL}/document-types/GetAll?page=${page}&limit=${limit}`,
+        { headers: { Authorization: `${token}` } }
+      );
 
-        if (Array.isArray(res.data?.data)) {
-          setDocTypes(res.data.data);
-          if (res.data.pagination) {
-            setTotal(res.data.pagination.total);
-            setPages(res.data.pagination.totalPages);
-            setPage(res.data.pagination.page);
-            setLimit(res.data.pagination.limit);
-          }
-        } else {
-          console.warn("Unexpected API response:", res.data);
-          setDocTypes([]);
-        }
-      } catch (error) {
-        console.error("Error fetching document types:", error);
+      const { data, pagination } = res.data || {};
+      if (Array.isArray(data)) {
+        setDocTypes(data);
+      } else {
         setDocTypes([]);
-      } finally {
-        setLoading(false); //  stop loading after fetch
       }
-    };
+
+      if (pagination) {
+        setTotal(pagination.total || 0);
+        setPage(pagination.page || 1);
+        setLimit(pagination.limit || 10);
+        setTotalPages(pagination.totalPages || 1);
+      }
+    } catch (error) {
+      console.error("Error fetching document types:", error);
+      setDocTypes([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchDocTypes();
   }, [page, limit]);
 
@@ -181,15 +186,19 @@ const DocTypeListing = () => {
 
   return (
     <div>
-
       <Card noborder>
         <div className="md:flex justify-between items-center mb-6">
           <h4 className="card-title">Document Types</h4>
           <div className="flex items-center gap-3">
             <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
             <Button
-              text="+ Create Doc Type"
-              className="btn-primary"
+              text={
+                <>
+                  <span className="hidden sm:inline">+ Create Doc Type</span>
+                  <span className="inline sm:hidden">+ Create</span>
+                </>
+              }
+              className="btn-primary py-2 px-3"
               type="button"
               onClick={() => navigate("/add-doc-type/add")}
             />
@@ -254,7 +263,7 @@ const DocTypeListing = () => {
                   ) : (
                     <tr>
                       <td colSpan={COLUMNS.length + 1} className="py-6 text-gray-500">
-                        No students found
+                        No document types found
                       </td>
                     </tr>
                   )}
@@ -265,26 +274,107 @@ const DocTypeListing = () => {
         </div>
 
         {/* Pagination */}
-        <div className="md:flex justify-between items-center mt-6">
-          <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            Page {page} of {pages} | Total {total} document types
-          </span>
+        <div className="md:flex md:space-y-0 space-y-5 justify-between mt-6 items-center">
+          {/* Go to page */}
+          <div className="flex items-center space-x-3 rtl:space-x-reverse">
+            <span className="flex space-x-2 rtl:space-x-reverse items-center">
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Go</span>
+              <span>
+                <input
+                  type="number"
+                  className="form-control py-2"
+                  value={page}
+                  min={1}
+                  max={totalPages}
+                  onChange={(e) => {
+                    const pageNumber = e.target.value ? Number(e.target.value) : 1;
+                    setPage(Math.min(Math.max(pageNumber, 1), totalPages));
+                  }}
+                  style={{ width: "50px" }}
+                />
+              </span>
+            </span>
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+              Page <span>{page}</span> of {totalPages}
+            </span>
+          </div>
 
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+          {/* Page numbers and navigation */}
+          <ul className="flex items-center space-x-3 rtl:space-x-reverse">
+            {/* First Page */}
+            <li className="text-xl text-slate-900 dark:text-white rtl:rotate-180">
+              <button
+                className={`${page === 1 ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => setPage(1)}
+                disabled={page === 1}
+              >
+                <Icon icon="heroicons:chevron-double-left-solid" />
+              </button>
+            </li>
+
+            {/* Previous */}
+            <li>
+              <button
+                className={`px-3 py-1 bg-gray-200 rounded ${page === 1 ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                Prev
+              </button>
+            </li>
+
+            {/* Page Numbers */}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+              <li key={num}>
+                <button
+                  className={`text-sm rounded px-3 py-1 ${num === page
+                    ? "bg-slate-900 text-white dark:bg-slate-600 dark:text-slate-200 font-medium"
+                    : "bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-slate-400 font-normal"
+                    }`}
+                  onClick={() => setPage(num)}
+                >
+                  {num}
+                </button>
+              </li>
+            ))}
+
+            {/* Next */}
+            <li>
+              <button
+                className={`px-3 py-1 bg-gray-200 rounded ${page === totalPages ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                Next
+              </button>
+            </li>
+
+            {/* Last Page */}
+            <li className="text-xl text-slate-900 dark:text-white rtl:rotate-180">
+              <button
+                className={`${page === totalPages ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => setPage(totalPages)}
+                disabled={page === totalPages}
+              >
+                <Icon icon="heroicons:chevron-double-right-solid" />
+              </button>
+            </li>
+          </ul>
+
+          {/* Page size selector */}
+          <div className="flex items-center space-x-3 rtl:space-x-reverse">
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Show</span>
+            <select
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
+              className="form-select py-2"
             >
-              Prev
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(pages, p + 1))}
-              disabled={page === pages}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-            >
-              Next
-            </button>
+              {[5, 10, 20, 30, 40].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </Card>

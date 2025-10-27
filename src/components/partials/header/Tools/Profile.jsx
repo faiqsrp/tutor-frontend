@@ -54,7 +54,7 @@ const Profile = () => {
   };
 
   const ProfileMenu = [
-    // { label: "Profile", icon: "heroicons-outline:user", action: () => navigate("/profile") },
+    { label: "Profile", icon: "heroicons-outline:user", action: () => navigate("/profile") },
     // { label: "Chat", icon: "heroicons-outline:chat", action: () => navigate("/chat") },
     // { label: "Email", icon: "heroicons-outline:mail", action: () => navigate("/email") },
     // { label: "Todo", icon: "heroicons-outline:clipboard-check", action: () => navigate("/todo") },

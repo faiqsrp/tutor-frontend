@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-// import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Card from "@/components/ui/Card";
-// import Icon from "@/components/ui/Icon";
 import {
   useTable,
   useRowSelect,
@@ -12,6 +10,7 @@ import {
 } from "react-table";
 import GlobalFilter from "../../table/react-tables/GlobalFilter";
 import Loader from "@/assets/images/logo/logo.png";
+import Select from "@/components/ui/Select";
 
 const IndeterminateCheckbox = React.forwardRef(
   ({ indeterminate, ...rest }, ref) => {
@@ -34,30 +33,16 @@ const IndeterminateCheckbox = React.forwardRef(
 );
 
 const AllStudentListing = () => {
-  // const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [tutors, setTutors] = useState([]);
-  const [selectedTutor, setSelectedTutor] = useState("");
-  const [loading, setLoading] = useState(false); // loading state
+  const [selectedTutor, setSelectedTutor] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Pagination states
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [pages, setPages] = useState(1);
-
-  // // Handle actions
-  // const handleAction = (action, row) => {
-  //   if (action === "edit") {
-  //     navigate(`/student-form/${row._id}`, { state: { mode: "edit" } });
-  //   }
-  //   if (action === "view") {
-  //     navigate(`/student-form/${row._id}`, { state: { mode: "view" } });
-  //   }
-  //   if (action === "delete") {
-  //     // open delete modal
-  //   }
-  // };
 
   // Fetch tutors
   useEffect(() => {
@@ -79,55 +64,88 @@ const AllStudentListing = () => {
   }, []);
 
   // Fetch Students (all or filtered)
-  const fetchStudents = async (tenantId) => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("token");
-      const res = await axios.get(
-        `${import.meta.env.VITE_APP_BASE_URL}/user/getStudentByAdmin`,
-        {
-          headers: { Authorization: `${token}` },
-          params: { tenantId },
-        }
-      );
-
-      console.log("Students API response =>", res.data);
-
-      // Extract students + pagination
-      const { students, pagination } = res.data?.data || {};
-      setStudents(students || []);
-
-      if (pagination) {
-        setTotal(pagination.total || 0);
-        setPage(pagination.page || 1);
-        setLimit(pagination.limit || 10);
-        setPages(pagination.pages || 1);
+ // ✅ Updated fetchStudents — backend pagination added
+const fetchStudents = async (tenantId = selectedTutor?.value) => {
+  if (!tenantId) return;
+  try {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    const res = await axios.get(
+      `${import.meta.env.VITE_APP_BASE_URL}/user/getStudentByAdmin`,
+      {
+        headers: { Authorization: `${token}` },
+        params: { tenantId, page, limit }, // ✅ Added page & limit
       }
-    } catch (err) {
-      console.error("Error fetching students:", err);
-    } finally {
-      setLoading(false); // stop loading
+    );
+
+    console.log("Students API response =>", res.data);
+
+    const { students, pagination } = res.data?.data || {};
+    setStudents(students || []);
+
+    if (pagination) {
+      setTotal(pagination.total || 0);
+      setPage(pagination.page || 1);
+      setLimit(pagination.limit || 10);
+      setPages(pagination.pages || 1);
     }
-  };
+  } catch (err) {
+    console.error("Error fetching students:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+//  New effect — refetch when page or limit changes
+useEffect(() => {
+  const tenantId = selectedTutor?.value || localStorage.getItem("selectedTutor");
+  if (tenantId) {
+    fetchStudents(tenantId);
+  }
+}, [page, limit]); 
 
 
-  const handleTutorChange = (e) => {
-    const tenantId = e.target.value;
-    setSelectedTutor(tenantId);
+  // Handle tutor selection (React Select)
+  const handleTutorChange = (selectedOption) => {
+    if (!selectedOption) return;
+    const tenantId = selectedOption.value;
+    setSelectedTutor(selectedOption);
     localStorage.setItem("selectedTutor", tenantId);
-    if (tenantId) {
-      fetchStudents(tenantId); // call with correct id
-    }
+    fetchStudents(tenantId);
   };
+
+  // Load saved tutor on page refresh
   useEffect(() => {
     const savedTutor = localStorage.getItem("selectedTutor");
     if (savedTutor) {
-      setSelectedTutor(savedTutor);
-      fetchStudents(savedTutor);
+      const tutorObj = tutors
+        .filter((t) => t.name && (t.tenantId?._id || t.tenantId))
+        .map((t) => ({
+          value: t.tenantId?._id || t.tenantId,
+          label: t.name,
+        }))
+        .find((opt) => opt.value === savedTutor);
+
+      if (tutorObj) {
+        setSelectedTutor(tutorObj);
+        fetchStudents(savedTutor);
+      }
     }
-  }, []);
+  }, [tutors]);
 
+  // Tutor dropdown options
+  const options = useMemo(
+    () =>
+      tutors
+        .filter((t) => t.name && (t.tenantId?._id || t.tenantId))
+        .map((t) => ({
+          value: t.tenantId?._id || t.tenantId,
+          label: t.name,
+        })),
+    [tutors]
+  );
 
+  // Columns for table
   const COLUMNS = useMemo(
     () => [
       {
@@ -157,8 +175,8 @@ const AllStudentListing = () => {
           <span className="block w-full">
             <span
               className={`inline-block px-3 min-w-[90px] text-center mx-auto py-1 rounded-full bg-opacity-25 ${row?.cell?.value
-                ? "text-success-500 bg-success-500"
-                : "text-danger-500 bg-danger-500"
+                  ? "text-white bg-primary-700"
+                  : "text-danger-500 bg-danger-500"
                 }`}
             >
               {row?.cell?.value ? "Active" : "Inactive"}
@@ -173,35 +191,6 @@ const AllStudentListing = () => {
           <span>{new Date(row?.cell?.value).toLocaleDateString("en-GB")}</span>
         ),
       },
-      // {
-      //   Header: "Action",
-      //   accessor: "action",
-      //   Cell: ({ row }) => (
-      //     <div className="flex space-x-3 rtl:space-x-reverse">
-      //       <button
-      //         className="action-btn"
-      //         type="button"
-      //         onClick={() => handleAction("view", row.original)}
-      //       >
-      //         <Icon icon="heroicons:eye" />
-      //       </button>
-      //       <button
-      //         className="action-btn"
-      //         type="button"
-      //         onClick={() => handleAction("edit", row.original)}
-      //       >
-      //         <Icon icon="heroicons:pencil-square" />
-      //       </button>
-      //       <button
-      //         className="action-btn"
-      //         type="button"
-      //         onClick={() => handleAction("delete", row.original)}
-      //       >
-      //         <Icon icon="heroicons:trash" />
-      //       </button>
-      //     </div>
-      //   ),
-      // },
     ],
     [page, limit]
   );
@@ -246,21 +235,56 @@ const AllStudentListing = () => {
     <Card noborder>
       <div className="md:flex justify-between items-center mb-6">
         <h4 className="card-title">Students</h4>
+
         {/* Tutor Filter */}
         <div className="flex gap-4 items-center">
           <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
-          <select
-            value={selectedTutor}
-            onChange={handleTutorChange}
-            className="border p-2 rounded h-12"
-          >
-            <option value="">Select Tutor</option>
-            {tutors.map((t) => (
-              <option key={t._id} value={t.tenantId}>
-                {t.name}
-              </option>
-            ))}
-          </select>
+          <div className="min-w-[220px]">
+            <Select
+              options={options}
+              placeholder="Select Tutor"
+              value={selectedTutor}
+              onChange={handleTutorChange}
+              styles={{
+                control: (base, state) => ({
+                  ...base,
+                  minHeight: "40px",
+                  borderRadius: "8px",
+                  padding: "0 4px",
+                  fontSize: "14px",
+                  borderColor: state.isFocused ? "primary-900" : "#3B82F6", // primary-900 : primary-500
+                  boxShadow: state.isFocused ? "0 0 0 1px #1E40AF" : "none",
+                  "&:hover": {
+                    borderColor: "#1E40AF", // hover effect
+                  },
+                }),
+                menu: (base) => ({
+                  ...base,
+                  zIndex: 100,
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isFocused
+                    ? "#3B82F6" // primary-500 on hover
+                    : state.isSelected
+                      ? "#1E40AF" // primary-900 when selected
+                      : "white",
+                  color: state.isFocused || state.isSelected ? "white" : "black",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }),
+                placeholder: (base) => ({
+                  ...base,
+                  color: "#6B7280", // gray-500
+                }),
+                singleValue: (base) => ({
+                  ...base,
+                  color: "#111827", // gray-900
+                }),
+              }}
+            />
+
+          </div>
         </div>
       </div>
 
@@ -314,7 +338,10 @@ const AllStudentListing = () => {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={COLUMNS.length + 1} className="py-6 text-gray-500">
+                    <td
+                      colSpan={COLUMNS.length + 1}
+                      className="py-6 text-gray-500 text-center"
+                    >
                       No students found
                     </td>
                   </tr>
@@ -326,26 +353,96 @@ const AllStudentListing = () => {
       </div>
 
       {/* Pagination */}
-      <div className="md:flex justify-between items-center mt-6">
-        <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
-          Page {page} of {pages} | Total {total} students
-        </span>
+      <div className="flex flex-wrap justify-between items-center mt-6 gap-4">
+        {/* Left Section */}
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-slate-700 dark:text-slate-300">
+            Go to page:
+          </span>
+          <input
+            type="number"
+            min="1"
+            max={pages}
+            value={page}
+            onChange={(e) => {
+              const newPage = Number(e.target.value);
+              if (newPage >= 1 && newPage <= pages) setPage(newPage);
+            }}
+            className="w-16 border rounded-md px-2 py-1 text-center dark:bg-slate-800 dark:text-white"
+          />
+          <span className="text-slate-700 dark:text-slate-300">
+            Page <strong>{page}</strong> of {pages}
+          </span>
+          <span className="text-slate-700 dark:text-slate-300">
+            | Total {total} students
+          </span>
+        </div>
 
-        <div className="flex items-center space-x-3">
+        {/* Middle Section - Numeric Pagination */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setPage(1)}
+            disabled={page === 1}
+            className="px-3 py-1 bg-slate-100 rounded-md disabled:opacity-50"
+          >
+            «
+          </button>
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+            className="px-3 py-1 bg-slate-100 rounded-md disabled:opacity-50"
           >
-            Prev
+            ‹
           </button>
+
+          {Array.from({ length: pages }, (_, i) => i + 1).map((num) => (
+            <button
+              key={num}
+              onClick={() => setPage(num)}
+              className={`px-3 py-1 rounded-md border transition-colors ${
+                page === num
+                  ? "bg-slate-900 text-white"
+                  : "bg-slate-100 text-slate-900 hover:bg-slate-200"
+              }`}
+            >
+              {num}
+            </button>
+          ))}
+
           <button
             onClick={() => setPage((p) => Math.min(pages, p + 1))}
             disabled={page === pages}
-            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+            className="px-3 py-1 bg-slate-100 rounded-md disabled:opacity-50"
           >
-            Next
+            ›
           </button>
+          <button
+            onClick={() => setPage(pages)}
+            disabled={page === pages}
+            className="px-3 py-1 bg-slate-100 rounded-md disabled:opacity-50"
+          >
+            »
+          </button>
+        </div>
+
+        {/* Right Section - Page Size */}
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-slate-700 dark:text-slate-300">Show</span>
+          <select
+            value={limit}
+            onChange={(e) => {
+              setLimit(Number(e.target.value));
+              setPage(1);
+            }}
+            className="border rounded-md px-2 py-1 dark:bg-slate-800 dark:text-white"
+          >
+            {[5, 10, 20, 50].map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+          <span className="text-slate-700 dark:text-slate-300">entries</span>
         </div>
       </div>
     </Card>

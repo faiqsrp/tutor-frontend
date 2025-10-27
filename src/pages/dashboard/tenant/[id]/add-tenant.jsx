@@ -109,9 +109,7 @@ const AddTenantPage = () => {
       >
         <form onSubmit={handleSubmit} className="p-4">
           {/* Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Left Column */}
-            <div className="space-y-6">
+          <div className="grid grid-cols-3 md:grid-cols-3 gap-8">
               <div>
                 <label className="block text-sm font-medium mb-1">Name</label>
                 <input
@@ -134,10 +132,7 @@ const AddTenantPage = () => {
                   readOnly={isViewMode || isEditMode}
                 />
               </div>
-            </div>
 
-            {/* Right Column */}
-            <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium mb-1">Address</label>
                 <input
@@ -160,19 +155,18 @@ const AddTenantPage = () => {
                   readOnly={isViewMode}
                 />
               </div>
-            </div>
-          </div>
-           <div>
-                <label className="block text-sm font-medium mb-1 mt-5">Notes</label>
+              <div>
+                <label className="block text-sm font-medium mb-1 ">Notes</label>
                 <textarea
                   name="notes"
                   value={formData.notes}
                   onChange={handleInputChange}
-                  rows={2}
+                  rows={1}
                   className={`border p-2 w-full rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""}`}
                   readOnly={isViewMode}
                 />
               </div>
+          </div>
 
           {/* Buttons outside grid */}
           <div className="flex justify-end gap-4 pt-6">
@@ -184,7 +178,7 @@ const AddTenantPage = () => {
             />
             {!isViewMode && (
               <Button
-                text={isEditMode ? "Update Tenant" : "Add Tenant"}
+                text={isEditMode ? "Update" : "Add Tenant"}
                 className="btn-primary "
                 type="submit"
               />

@@ -19,7 +19,7 @@ import CatagoriesFilterCheckbox from "@/components/partials/ecommerce/catagories
 import PriceCheckbox from "@/components/partials/ecommerce/price-checkbox";
 import BrandsCheckbox from "@/components/partials/ecommerce/brands-checkbox";
 import clsx from "clsx";
-import Select from "react-select";
+import Select from "@/components/ui/Select";
 import { useGetProductsQuery } from "@/store/api/shop/shopApiSlice";
 import {
   updateSearchFilter,
