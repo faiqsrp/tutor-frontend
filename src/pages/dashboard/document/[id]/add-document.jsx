@@ -273,8 +273,8 @@ const AddDocumentPage = () => {
                   disabled={isViewMode}
                 >
                   <option value="NA">NA</option>
-                  <option value="Page1">Paper 1</option>
-                  <option value="Page2">Paper 2</option>
+                  <option value="Paper1">Paper 1</option>
+                  <option value="Paper2">Paper 2</option>
                 </select>
               </div>
             </div>
