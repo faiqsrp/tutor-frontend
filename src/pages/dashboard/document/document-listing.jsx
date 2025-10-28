@@ -16,6 +16,7 @@ import {
 import GlobalFilter from "../../table/react-tables/GlobalFilter";
 import { toast } from "react-toastify";
 import Loader from "@/assets/images/logo/logo.png";
+import Modal from "@/components/ui/Modal";
 
 const IndeterminateCheckbox = React.forwardRef(
   ({ indeterminate, ...rest }, ref) => {
@@ -41,9 +42,40 @@ const DocumentListing = () => {
   const navigate = useNavigate();
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedDocumentId, setSelectedDocumentId] = useState(null);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
+
+const confirmDelete = async () => {
+  if (!selectedDocumentId) {
+    toast.error("Document ID is missing");
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+    await axios.delete(
+      `${import.meta.env.VITE_APP_BASE_URL}/documents/delete/${selectedDocumentId}`,
+      {
+        headers: { Authorization: `${token}` },
+      }
+    );
+
+    toast.success("Document deleted successfully");
+    setDocuments((prev) =>
+      prev.filter((doc) => doc._id !== selectedDocumentId)
+    );
+  } catch (error) {
+    console.error("Error deleting document:", error);
+    toast.error("Error deleting document");
+  } finally {
+    setDeleteModalOpen(false);
+    setSelectedDocumentId(null);
+  }
+};
+
+
 
   const handleAction = async (action, row) => {
     if (action === "edit") {
@@ -52,22 +84,22 @@ const DocumentListing = () => {
     if (action === "view") {
       navigate(`/add-document/${row._id}`, { state: { mode: "view" } });
     }
-    if (action === "delete") {
-      try {
-        const token = localStorage.getItem("token");
-        await axios.delete(
-          `${import.meta.env.VITE_APP_BASE_URL}/documents/delete/${row._id}`,
-          {
-            headers: { Authorization: `${token}` },
-          }
-        );
-        toast.success("Document deleted successfully");
-        // instantly update UI
-        setDocuments((prev) => prev.filter((doc) => doc._id !== row._id));
-      } catch (error) {
-        toast.error("Error deleting document:", error);
-      }
-    }
+    // if (action === "delete") {
+    //   try {
+    //     const token = localStorage.getItem("token");
+    //     await axios.delete(
+    //       `${import.meta.env.VITE_APP_BASE_URL}/documents/delete/${row._id}`,
+    //       {
+    //         headers: { Authorization: `${token}` },
+    //       }
+    //     );
+    //     toast.success("Document deleted successfully");
+    //     // instantly update UI
+    //     setDocuments((prev) => prev.filter((doc) => doc._id !== row._id));
+    //   } catch (error) {
+    //     toast.error("Error deleting document:", error);
+    //   }
+    // }
   };
   const actions = [
     { name: "view", icon: "heroicons-outline:eye" },
@@ -137,9 +169,9 @@ const DocumentListing = () => {
       },
       {
         Header: "Document",
-        accessor: "documentFile", 
+        accessor: "documentFile",
         Cell: ({ row }) => {
-          const fileUrl = row.original?.documentFile; 
+          const fileUrl = row.original?.documentFile;
           return fileUrl ? (
             <a
               href={fileUrl.startsWith("http") ? fileUrl : `${import.meta.env.VITE_APP_BASE_URL}/${fileUrl}`}
@@ -212,10 +244,12 @@ const DocumentListing = () => {
             {/* Delete */}
             <button
               className="action-btn"
-              type="button"
-              onClick={() => handleAction("delete", row.original)}
+              onClick={() => {
+                setSelectedDocumentId(row.original._id); // ✅ Store the actual ID
+                setDeleteModalOpen(true); // ✅ Open modal
+              }}
             >
-              <Icon icon="heroicons:trash" />
+              <Icon icon="heroicons:trash" className="text-red-600" />
             </button>
           </div>
         ),
@@ -269,7 +303,7 @@ const DocumentListing = () => {
           <div className="flex items-center gap-4">
             <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
             <Button
-               text={
+              text={
                 <>
                   <span className="hidden sm:inline">+ Create Document </span>
                   <span className="inline sm:hidden">+ Create</span>
@@ -374,6 +408,32 @@ const DocumentListing = () => {
           </div>
         </div>
       </Card>
+      <Modal
+        activeModal={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="Delete Document"
+        themeClass="bg-gradient-to-r from-[#3AB89D] to-[#3A90B8]"
+        centered
+        footerContent={
+          <div className="flex justify-between w-full">
+            <Button
+              text="Cancel"
+              className="btn-light"
+              onClick={() => setDeleteModalOpen(false)}
+            />
+            <Button
+              text="Delete"
+              className="btn-danger"
+              onClick={confirmDelete}
+            />
+          </div>
+        }
+      >
+        <p className="text-slate-700 dark:text-slate-300">
+          Are you sure you want to delete this document? This action cannot be undone.
+        </p>
+      </Modal>
+
     </div>
   );
 };

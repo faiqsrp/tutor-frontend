@@ -136,8 +136,8 @@ const AddDocType = () => {
         {/* Buttons */}
         <div className="flex justify-end gap-4 pt-6">
           <Button
-            text="Cancel"
-            className="btn-light "
+            text={mode === "view"?  "Back" : "Cancel"}
+            className={mode === "view"?  "btn-primary" : "btn-light"}
             type="button"
             onClick={() => navigate("/doc-type-listing")}
           />

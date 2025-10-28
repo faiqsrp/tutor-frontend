@@ -102,9 +102,7 @@ const StudentListing = () => {
   const handleAction = (action, row) => {
     if (action === "edit") navigate(`/student-form/${row._id}`, { state: { mode: "edit" } });
     if (action === "view") navigate(`/student-form/${row._id}`, { state: { mode: "view" } });
-    if (action === "delete") {
-      // open delete modal or API call
-    }
+  
   };
 
   // columns depend on students so table updates reflect toggles immediately

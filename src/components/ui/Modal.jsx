@@ -7,7 +7,7 @@ const Modal = ({
   onClose,
   noFade,
   disableBackdrop,
-  className = "max-w-xl",
+  className = "max-w-md",
   children,
   footerContent,
   centered,
@@ -65,9 +65,8 @@ const Modal = ({
 
               <div className="fixed inset-0 overflow-y-auto">
                 <div
-                  className={`flex min-h-full justify-center text-center p-6 ${
-                    centered ? "items-center" : "items-start "
-                  }`}
+                  className={`flex min-h-full justify-center text-center p-6 ${centered ? "items-center" : "items-start "
+                    }`}
                 >
                   <Transition.Child
                     as={Fragment}
@@ -93,15 +92,16 @@ const Modal = ({
                         </button>
                       </div>
                       <div
-                        className={`px-6 py-8 ${
-                          scrollContent ? "overflow-y-auto max-h-[400px]" : ""
-                        }`}
+                        className={`px-6 py-8 ${scrollContent ? "overflow-y-auto max-h-[400px]" : ""
+                          }`}
                       >
                         {children}
                       </div>
                       {footerContent && (
-                        <div className="px-4 py-3 flex justify-end space-x-3 border-t border-slate-100 dark:border-slate-700">
-                          {footerContent}
+                        <div className="w-full border-t bg-black-500 border-slate-100 dark:border-slate-700">
+                          <div className="flex justify-between items-center w-full px-4 py-3 space-x-3">
+                            {footerContent}
+                          </div>
                         </div>
                       )}
                     </Dialog.Panel>
@@ -130,9 +130,8 @@ const Modal = ({
 
             <div className="fixed inset-0 overflow-y-auto">
               <div
-                className={`flex min-h-full justify-center text-center p-6 ${
-                  centered ? "items-center" : "items-start "
-                }`}
+                className={`flex min-h-full justify-center text-center p-6 ${centered ? "items-center" : "items-start "
+                  }`}
               >
                 <Transition.Child
                   as={Fragment}
@@ -158,9 +157,8 @@ const Modal = ({
                       </button>
                     </div>
                     <div
-                      className={`px-6 py-8 ${
-                        scrollContent ? "overflow-y-auto max-h-[400px]" : ""
-                      }`}
+                      className={`px-6 py-8 ${scrollContent ? "overflow-y-auto max-h-[400px]" : ""
+                        }`}
                     >
                       {children}
                     </div>

@@ -171,8 +171,8 @@ const AddTenantPage = () => {
           {/* Buttons outside grid */}
           <div className="flex justify-end gap-4 pt-6">
             <Button
-              text="Cancel"
-              className="btn-light "
+              text={isViewMode ? "Back" : "Cancel"}
+              className={isViewMode ? "btn-primary" : "btn-light"}
               type="button"
               onClick={() => navigate("/tenant-listing")}
             />

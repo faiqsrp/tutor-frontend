@@ -106,7 +106,14 @@ const StudentFormPage = () => {
 
   return (
     <div>
-      <Card title={isViewMode ? "View Student" : "Edit Student"}>
+      <Card title={isViewMode ? "View Student" : "Edit Student"}
+        headerslot={
+          <Button
+            text="Back"
+            className="bg-white"
+            onClick={() => navigate(-1)}
+          />
+        }>
         <form onSubmit={handleSubmit} className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-6 ">
@@ -178,26 +185,25 @@ const StudentFormPage = () => {
                 className="w-40 h-40 rounded-full object-cover border "
               />
               <p className="mt-2 text-sm text-gray-500">Profile Picture</p>
-
-              {/* Buttons */}
-              <div className="pt-8 flex justify-between gap-4">
+            </div>
+          </div>
+        </form>
+        {/* Buttons */}
+        {/* <div className="pt-8 flex justify-end gap-4">
                 <Button
-                  text="Cancel"
-                  className="btn-light w-1/2"
+                  text={mode === "view"?  "Back" : "Cancel"}
+                  className= {`${mode === "view"?  "btn-primary" : "btn-light"} `}
                   type="button"
                   onClick={() => window.history.back()}
                 />
                 {!isViewMode && (
                   <Button
                     text="Update"
-                    className="btn-primary w-1/2"
+                    className="btn-primary "
                     type="submit"
                   />
                 )}
-              </div>
-            </div>
-          </div>
-        </form>
+              </div> */}
       </Card>
     </div>
   );

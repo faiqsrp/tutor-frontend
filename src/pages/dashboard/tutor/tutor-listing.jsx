@@ -14,6 +14,7 @@ import {
 import GlobalFilter from "../../table/react-tables/GlobalFilter";
 import { toast } from "react-toastify";
 import Loader from "@/assets/images/logo/logo.png";
+import Modal from "@/components/ui/Modal";
 
 const IndeterminateCheckbox = React.forwardRef(
   ({ indeterminate, ...rest }, ref) => {
@@ -40,12 +41,28 @@ const TutorListing = () => {
   const [tutors, setTutors] = useState([]);
   const loggedInUser = JSON.parse(localStorage.getItem("user")); //  logged-in user
   const [loading, setLoading] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false); // ✅ new state
+  const [selectedTutorId, setSelectedTutorId] = useState(null);
 
   // Pagination states
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [pages, setPages] = useState(1);
+
+  const handleDeleteTutor = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${import.meta.env.VITE_APP_BASE_URL}/user/admin-remove/${id}`, {
+        headers: { Authorization: `${token}` },
+      });
+      toast.success("Tutor deleted successfully");
+      setTutors((prev) => prev.filter((t) => t._id !== id));
+    } catch (error) {
+      console.error("Error deleting tutor:", error);
+      toast.error("Failed to delete tutor");
+    }
+  };
 
   const handleAction = async (action, row) => {
     if (action === "edit") {
@@ -54,19 +71,19 @@ const TutorListing = () => {
     if (action === "view") {
       navigate(`/add-tutor/${row._id}`, { state: { mode: "view" } });
     }
-    if (action === "delete") {
-      try {
-        const token = localStorage.getItem("token");
-        await axios.delete(
-          `${import.meta.env.VITE_APP_BASE_URL}/user/admin-remove/${row._id}`,
-          { headers: { Authorization: `${token}` } }
-        );
-        toast.success("Tutor Deleted Successfully");
-        setTutors((prev) => prev.filter((t) => t._id !== row._id));
-      } catch (error) {
-        toast.error("Error deleting tutor:", error);
-      }
-    }
+    // if (action === "delete") {
+    //   try {
+    //     const token = localStorage.getItem("token");
+    //     await axios.delete(
+    //       `${import.meta.env.VITE_APP_BASE_URL}/user/admin-remove/${row._id}`,
+    //       { headers: { Authorization: `${token}` } }
+    //     );
+    //     toast.success("Tutor Deleted Successfully");
+    //     setTutors((prev) => prev.filter((t) => t._id !== row._id));
+    //   } catch (error) {
+    //     toast.error("Error deleting tutor:", error);
+    //   }
+    // }
   };
 
   useEffect(() => {
@@ -165,10 +182,12 @@ const TutorListing = () => {
 
             <button
               className="action-btn"
-              type="button"
-              onClick={() => handleAction("delete", row.original)}
+              onClick={() => {
+                setSelectedTutorId(row.original._id);
+                setDeleteModalOpen(true); // ✅ open modal
+              }}
             >
-              <Icon icon="heroicons:trash" />
+              <Icon icon="heroicons:trash" className="text-red-600" />
             </button>
           </div>
         ),
@@ -301,32 +320,32 @@ const TutorListing = () => {
           </div>
         </div>
 
-      
+
         {/* Pagination */}
         <div className="md:flex md:space-y-0 space-y-5 justify-between mt-6 items-center">
           {/* Go to page */}
           <div className="flex items-center gap-2 text-sm">
-          <span className="text-slate-700 dark:text-slate-300">
-            Go to page:
-          </span>
-          <input
-            type="number"
-            min="1"
-            max={pages}
-            value={page}
-            onChange={(e) => {
-              const newPage = Number(e.target.value);
-              if (newPage >= 1 && newPage <= pages) setPage(newPage);
-            }}
-            className="w-16 border rounded-md px-2 py-1 text-center dark:bg-slate-800 dark:text-white"
-          />
-          <span className="text-slate-700 dark:text-slate-300">
-            Page <strong>{page}</strong> of {pages}
-          </span>
-          <span className="text-slate-700 dark:text-slate-300">
-            | Total {total} students
-          </span>
-        </div>
+            <span className="text-slate-700 dark:text-slate-300">
+              Go to page:
+            </span>
+            <input
+              type="number"
+              min="1"
+              max={pages}
+              value={page}
+              onChange={(e) => {
+                const newPage = Number(e.target.value);
+                if (newPage >= 1 && newPage <= pages) setPage(newPage);
+              }}
+              className="w-16 border rounded-md px-2 py-1 text-center dark:bg-slate-800 dark:text-white"
+            />
+            <span className="text-slate-700 dark:text-slate-300">
+              Page <strong>{page}</strong> of {pages}
+            </span>
+            <span className="text-slate-700 dark:text-slate-300">
+              | Total {total} students
+            </span>
+          </div>
 
           {/* Page numbers and navigation */}
           <ul className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -408,6 +427,30 @@ const TutorListing = () => {
         </div>
 
       </Card>
+      <Modal
+        activeModal={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="Confirm Delete"
+        themeClass="bg-gradient-to-r from-[#3AB89D] to-[#3A90B8]"
+        centered
+        footerContent={
+          <div className="flex justify-between w-full">
+            <Button text="Cancel" className="btn-light" onClick={() => setDeleteModalOpen(false)} />
+            <Button
+              text="Delete"
+              className="btn-danger"
+              onClick={async () => {
+                await handleDeleteTutor(selectedTutorId);
+                setDeleteModalOpen(false);
+              }}
+            />
+          </div>
+        }
+      >
+        <p className="text-gray-700 text-center">
+          Are you sure you want to delete this tutor? This action cannot be undone.
+        </p>
+      </Modal>
     </div>
   );
 };

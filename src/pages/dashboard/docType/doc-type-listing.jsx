@@ -14,6 +14,7 @@ import {
 import GlobalFilter from "../../table/react-tables/GlobalFilter";
 import Loader from "@/assets/images/logo/logo.png";
 import { toast } from "react-toastify";
+import Modal from "@/components/ui/Modal";
 
 const IndeterminateCheckbox = React.forwardRef(
   ({ indeterminate, ...rest }, ref) => {
@@ -38,6 +39,25 @@ const DocTypeListing = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedDocTypeId, setSelectedDocTypeId] = useState(null);
+
+  const handleDeleteDocType = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `${import.meta.env.VITE_APP_BASE_URL}/document-types/delete/${id}`,
+        { headers: { Authorization: `${token}` } }
+      );
+      toast.success("Document Type deleted successfully");
+      setDocTypes((prev) => prev.filter((d) => d._id !== id));
+      setDeleteModalOpen(false);
+    } catch (error) {
+      console.error("Error deleting document type:", error);
+      toast.error("Failed to delete document type");
+    }
+  };
+
 
   const handleAction = async (action, row) => {
     if (action === "edit") {
@@ -46,21 +66,21 @@ const DocTypeListing = () => {
     if (action === "view") {
       navigate(`/add-doc-type/${row._id}`, { state: { mode: "view" } });
     }
-    if (action === "delete") {
-      try {
-        const token = localStorage.getItem("token");
-        await axios.delete(
-          `${import.meta.env.VITE_APP_BASE_URL}/document-types/delete/${row._id}`,
-          { headers: { Authorization: `${token}` } }
-        );
-        toast.success("DocType deleted successfully");
-        setDocTypes((prev) => prev.filter((d) => d._id !== row._id));
-        // refetch data after delete
-        fetchDocTypes();
-      } catch (err) {
-        console.error("Error deleting doc type:", err);
-      }
-    }
+    // if (action === "delete") {
+    //   try {
+    //     const token = localStorage.getItem("token");
+    //     await axios.delete(
+    //       `${import.meta.env.VITE_APP_BASE_URL}/document-types/delete/${row._id}`,
+    //       { headers: { Authorization: `${token}` } }
+    //     );
+    //     toast.success("DocType deleted successfully");
+    //     setDocTypes((prev) => prev.filter((d) => d._id !== row._id));
+    //     // refetch data after delete
+    //     fetchDocTypes();
+    //   } catch (err) {
+    //     console.error("Error deleting doc type:", err);
+    //   }
+    // }
   };
 
   const fetchDocTypes = async () => {
@@ -134,13 +154,15 @@ const DocTypeListing = () => {
             >
               <Icon icon="heroicons:pencil-square" />
             </button>
-            <button
-              className="action-btn"
-              type="button"
-              onClick={() => handleAction("delete", row.original)}
-            >
-              <Icon icon="heroicons:trash" />
-            </button>
+              <button
+                className="action-btn"
+                onClick={() => {
+                  setSelectedDocTypeId(row.original._id);
+                  setDeleteModalOpen(true); // open modal
+                }}
+              >
+                <Icon icon="heroicons:trash" className="text-red-600"/>
+              </button>
           </div>
         ),
       },
@@ -378,6 +400,35 @@ const DocTypeListing = () => {
           </div>
         </div>
       </Card>
+
+      <Modal
+        activeModal={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="Delete Document Type"
+       themeClass="bg-gradient-to-r from-[#3AB89D] to-[#3A90B8]"
+        centered
+        footerContent={
+          <div className="flex justify-between w-full">
+            <Button
+              text="Cancel"
+              className="btn-light"
+              onClick={() => setDeleteModalOpen(false)}
+            />
+            <Button
+              text="Delete"
+              className="btn-danger"
+              onClick={async () => {
+                await handleDeleteDocType(selectedDocTypeId);
+              }}
+            />
+          </div>
+        }
+      >
+        <p className="text-slate-700 dark:text-slate-300 ">
+          Are you sure you want to delete this Document Type? This action cannot be undone.
+        </p>
+      </Modal>
+
     </div>
   );
 };

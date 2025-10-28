@@ -14,6 +14,7 @@ import GlobalFilter from "../../table/react-tables/GlobalFilter";
 import Button from "@/components/ui/Button";
 import { toast } from "react-toastify";
 import Loader from "@/assets/images/logo/logo.png";
+import Modal from "@/components/ui/Modal";
 
 const IndeterminateCheckbox = React.forwardRef(
   ({ indeterminate, ...rest }, ref) => {
@@ -30,17 +31,35 @@ const IndeterminateCheckbox = React.forwardRef(
   }
 );
 
+
+
 const TenantListing = () => {
   const navigate = useNavigate();
   const [tenants, setTenants] = useState([]);
   const [loading, setLoading] = useState(false);
   const loggedInUser = JSON.parse(localStorage.getItem("user")); //  logged-in user
+   const [deleteModalOpen, setDeleteModalOpen] = useState(false); // ✅ new state
+  const [selectedTenantId, setSelectedTenantId] = useState(null); 
 
   // Pagination states
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [pages, setPages] = useState(1);
+
+   const handleDeleteTenant = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${import.meta.env.VITE_APP_BASE_URL}/tenants/${id}`, {
+        headers: { Authorization: `${token}` },
+      });
+      toast.success("Tenant deleted successfully");
+      setTenants((prev) => prev.filter((t) => t._id !== id));
+    } catch (error) {
+      console.error("Error deleting tenant:", error);
+      toast.error("Failed to delete tenant");
+    }
+  };
 
   // Handle row actions
   const handleAction = async (action, row) => {
@@ -50,23 +69,23 @@ const TenantListing = () => {
     if (action === "view") {
       navigate(`/add-tenant/${row._id}`, { state: { mode: "view" } });
     }
-    if (action === "delete") {
-      try {
-        const token = localStorage.getItem("token");
+    // if (action === "delete") {
+    //   try {
+    //     const token = localStorage.getItem("token");
 
-        await axios.delete(
-          `${import.meta.env.VITE_APP_BASE_URL}/tenants/${row._id}`,
-          { headers: { Authorization: `${token}` } }
-        );
+    //     await axios.delete(
+    //       `${import.meta.env.VITE_APP_BASE_URL}/tenants/${row._id}`,
+    //       { headers: { Authorization: `${token}` } }
+    //     );
 
-        toast.success("Tenant deleted successfully");
+    //     toast.success("Tenant deleted successfully");
 
-        setTenants((prev) => prev.filter((t) => t._id !== row._id));
-      } catch (error) {
-        console.error("Error deleting tenant:", error);
-        toast.error("Failed to delete tenant");
-      }
-    }
+    //     setTenants((prev) => prev.filter((t) => t._id !== row._id));
+    //   } catch (error) {
+    //     console.error("Error deleting tenant:", error);
+    //     toast.error("Failed to delete tenant");
+    //   }
+    // }
   };
 
   // Fetch Tenants
@@ -169,10 +188,12 @@ const TenantListing = () => {
             </button>
             <button
               className="action-btn"
-              type="button"
-              onClick={() => handleAction("delete", row.original)}
+              onClick={() => {
+                setSelectedTenantId(row.original._id);
+                setDeleteModalOpen(true); // ✅ open modal
+              }}
             >
-              <Icon icon="heroicons:trash" />
+              <Icon icon="heroicons:trash" className="text-red-600" />
             </button>
           </div>
         ),
@@ -395,6 +416,30 @@ const TenantListing = () => {
           </div>
         </div>
       </Card>
+       <Modal
+        activeModal={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="Confirm Delete"
+        themeClass="bg-gradient-to-r from-[#3AB89D] to-[#3A90B8]"
+        centered
+        footerContent={
+          <div className="flex justify-between w-full">
+            <Button text="Cancel" className="btn-light" onClick={() => setDeleteModalOpen(false)} />
+            <Button
+              text="Delete"
+              className="btn-danger"
+              onClick={async () => {
+                await handleDeleteTenant(selectedTenantId);
+                setDeleteModalOpen(false);
+              }}
+            />
+          </div>
+        }
+      >
+        <p className="text-gray-700 text-center">
+          Are you sure you want to delete this tenant? This action cannot be undone.
+        </p>
+      </Modal>
     </div>
   );
 };

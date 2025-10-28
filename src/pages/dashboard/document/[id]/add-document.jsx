@@ -133,7 +133,7 @@ const AddDocumentPage = () => {
     if (!formData.documnetBrief.trim())
       newErrors.documnetBrief = "Document brief is required";
 
-    // ✅ Only validate documentURL if "Video Lectures"
+    //  Only validate documentURL if "Video Lectures"
     if (isVideoLecture && !formData.documentURL.trim())
       newErrors.documentURL = "Document URL is required for video lectures";
 
@@ -234,7 +234,7 @@ const AddDocumentPage = () => {
                   setFormData((prev) => ({
                     ...prev,
                     documentType: selectedOption?.value || "",
-                    // 🔹 Clear documentURL if not Video Lectures
+                    //  Clear documentURL if not Video Lectures
                     documentURL:
                       selectedOption?.label?.toLowerCase() ===
                       "video lectures"
@@ -278,7 +278,7 @@ const AddDocumentPage = () => {
               )}
             </div>
 
-            {/* ✅ Document URL — only visible for Video Lectures */}
+            {/*  Document URL — only visible for Video Lectures */}
             {isVideoLecture && (
               <div>
                 <label className="block text-sm font-medium mb-1">
@@ -303,7 +303,9 @@ const AddDocumentPage = () => {
             )}
 
             {/* File Upload */}
-            {!isViewMode && (
+            
+            {!isViewMode && !isVideoLecture && (
+              
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Upload Document
@@ -368,8 +370,8 @@ const AddDocumentPage = () => {
 
           <div className="flex justify-end gap-4 pt-6">
             <Button
-              text="Cancel"
-              className="btn-light"
+              text={mode === "view"?  "Back" : "Cancel"}
+            className={mode === "view"?  "btn-primary" : "btn-light"}
               type="button"
               onClick={() => navigate("/document-listing")}
             />
