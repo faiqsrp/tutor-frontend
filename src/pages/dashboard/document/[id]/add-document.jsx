@@ -137,8 +137,9 @@ const AddDocumentPage = () => {
     if (isVideoLecture && !formData.documentURL.trim())
       newErrors.documentURL = "Document URL is required for video lectures";
 
-    if (!formData.documentUpload.trim())
+    if (!isVideoLecture && !formData.documentUpload.trim()) {
       newErrors.documentUpload = "Please upload a document";
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -189,8 +190,8 @@ const AddDocumentPage = () => {
           isViewMode
             ? "View Document"
             : isEditMode
-            ? "Edit Document"
-            : "Add Document"
+              ? "Edit Document"
+              : "Add Document"
         }
       >
         <form onSubmit={handleSubmit} className="p-4">
@@ -203,9 +204,8 @@ const AddDocumentPage = () => {
                 name="title"
                 value={formData.title}
                 onChange={handleInputChange}
-                className={`border p-2 w-full rounded ${
-                  isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
-                }`}
+                className={`border p-2 w-full rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
+                  }`}
                 readOnly={isViewMode}
               />
               {errors.title && (
@@ -237,7 +237,7 @@ const AddDocumentPage = () => {
                     //  Clear documentURL if not Video Lectures
                     documentURL:
                       selectedOption?.label?.toLowerCase() ===
-                      "video lectures"
+                        "video lectures"
                         ? prev.documentURL
                         : "",
                   }));
@@ -266,9 +266,8 @@ const AddDocumentPage = () => {
                 name="documnetBrief"
                 value={formData.documnetBrief}
                 onChange={handleInputChange}
-                className={`border p-2 w-full h-10 rounded ${
-                  isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
-                }`}
+                className={`border p-2 w-full h-10 rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
+                  }`}
                 readOnly={isViewMode}
               />
               {errors.documnetBrief && (
@@ -289,9 +288,8 @@ const AddDocumentPage = () => {
                   name="documentURL"
                   value={formData.documentURL}
                   onChange={handleInputChange}
-                  className={`border p-2 w-full rounded ${
-                    isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
-                  }`}
+                  className={`border p-2 w-full rounded ${isViewMode ? "bg-gray-100 cursor-not-allowed" : ""
+                    }`}
                   readOnly={isViewMode}
                 />
                 {errors.documentURL && (
@@ -303,9 +301,9 @@ const AddDocumentPage = () => {
             )}
 
             {/* File Upload */}
-            
+
             {!isViewMode && !isVideoLecture && (
-              
+
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Upload Document
@@ -370,8 +368,8 @@ const AddDocumentPage = () => {
 
           <div className="flex justify-end gap-4 pt-6">
             <Button
-              text={mode === "view"?  "Back" : "Cancel"}
-            className={mode === "view"?  "btn-primary" : "btn-light"}
+              text={mode === "view" ? "Back" : "Cancel"}
+              className={mode === "view" ? "btn-primary" : "btn-light"}
               type="button"
               onClick={() => navigate("/document-listing")}
             />
