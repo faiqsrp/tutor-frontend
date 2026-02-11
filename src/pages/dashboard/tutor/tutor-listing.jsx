@@ -41,7 +41,7 @@ const TutorListing = () => {
   const [tutors, setTutors] = useState([]);
   const loggedInUser = JSON.parse(localStorage.getItem("user")); //  logged-in user
   const [loading, setLoading] = useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false); // ✅ new state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false); //  new state
   const [selectedTutorId, setSelectedTutorId] = useState(null);
 
   // Pagination states
@@ -96,13 +96,21 @@ const TutorListing = () => {
           { headers: { Authorization: `${token}` } }
         );
 
-        // Filter tutors and merge createdBy/updatedBy
+        // Filter tutors and safely extract createdBy/updatedBy names
         const merged = (response.data.data || [])
           .filter((u) => u.type === "tutor" && !u.isDeleted)
           .map((t) => ({
             ...t,
-            createdBy: t.createdBy || loggedInUser?.name || "-",
-            updatedBy: t.updatedBy || loggedInUser?.name || "-",
+            // Safely extract name from createdBy object or string
+            createdBy:
+              typeof t.createdBy === 'object' && t.createdBy !== null
+                ? t.createdBy.name
+                : t.createdBy || loggedInUser?.name || "-",
+            // Safely extract name from updatedBy object or string
+            updatedBy:
+              typeof t.updatedBy === 'object' && t.updatedBy !== null
+                ? t.updatedBy.name
+                : t.updatedBy || loggedInUser?.name || "-",
           }));
 
         setTutors(merged);
@@ -117,6 +125,7 @@ const TutorListing = () => {
         }
       } catch (error) {
         console.error("Error fetching tutors:", error);
+        toast.error("Failed to fetch tutors");
       } finally {
         setLoading(false);
       }
@@ -124,7 +133,6 @@ const TutorListing = () => {
 
     fetchTutors();
   }, [page, limit, loggedInUser?.name]);
-
   const COLUMNS = useMemo(
     () => [
       {
@@ -140,19 +148,23 @@ const TutorListing = () => {
         accessor: "email",
         Cell: (row) => <span className="text-sm lowercase text-slate-600 dark:text-slate-300">{row?.cell?.value}</span>,
       },
-      { Header: "Username", accessor: "username" },
+      { Header: "Username", accessor: "username" , Cell: (row) => <span>{row.value || "N/A"}</span>},
       {
         Header: "Tenant",
         accessor: "tenantId",
-        Cell: (row) => <span>{row.value?.name || "-"}</span>,
+        Cell: (row) => {
+          const tenant = row.value;
+          if (!tenant) return <span>N/A</span>;
+          return <span>{typeof tenant === 'object' ? tenant.name : tenant}</span>;
+        },
       },
       {
         Header: "Active",
         accessor: "isActive",
         Cell: (row) => <span>{row.value ? "Yes" : "No"}</span>,
       },
-      { Header: "Created By", accessor: "createdBy" },
-      { Header: "Updated By", accessor: "updatedBy" },
+      { Header: "Created By", accessor: "createdBy",Cell: (row) => <span>{row.value || "N/A"}</span> },
+      { Header: "Updated By", accessor: "updatedBy",Cell: (row) => <span>{row.value || "N/A"}</span> },
       {
         Header: "Created At",
         accessor: "createdAt",
@@ -184,7 +196,7 @@ const TutorListing = () => {
               className="action-btn"
               onClick={() => {
                 setSelectedTutorId(row.original._id);
-                setDeleteModalOpen(true); // ✅ open modal
+                setDeleteModalOpen(true); //  open modal
               }}
             >
               <Icon icon="heroicons:trash" className="text-red-600" />
@@ -234,9 +246,9 @@ const TutorListing = () => {
 
   return (
     <div>
-      <Card noborder>
+      <Card noborder >
         <div className="md:flex justify-between items-center mb-6">
-          <h4 className="card-title">Tutors</h4>
+          <h4 className="text-xl text-black-600">Tutor Listing</h4>
           <div className="flex items-center gap-3">
             <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
             <Button
@@ -266,7 +278,7 @@ const TutorListing = () => {
                       {headerGroup.headers.map((column) => (
                         <th
                           {...column.getHeaderProps(column.getSortByToggleProps())}
-                          className="table-th"
+                          className="table-th whitespace-nowrap "
                         >
                           {column.render("Header")}
                           <span>
@@ -310,7 +322,7 @@ const TutorListing = () => {
                   ) : (
                     <tr>
                       <td colSpan={COLUMNS.length + 1} className="py-6 text-gray-500">
-                        No students found
+                        No Tutors Found
                       </td>
                     </tr>
                   )}
@@ -341,9 +353,6 @@ const TutorListing = () => {
             />
             <span className="text-slate-700 dark:text-slate-300">
               Page <strong>{page}</strong> of {pages}
-            </span>
-            <span className="text-slate-700 dark:text-slate-300">
-              | Total {total} students
             </span>
           </div>
 

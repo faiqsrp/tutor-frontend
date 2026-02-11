@@ -29,7 +29,7 @@ const AddQuestionsPage = () => {
           },
         })
         .then((res) => {
-          const data = res.data?.data || {}; 
+          const data = res.data?.data || {};
           setFormData({
             question: data.question || "",
             answer: data.answer || "",
@@ -113,14 +113,23 @@ const AddQuestionsPage = () => {
               <option value="N/A">N/A</option>
               <option value="Paper1">Paper 1</option>
               <option value="Paper2">Paper 2</option>
+              <option value="O_LEVEL_PAPER_1">O Level Paper 1</option>
+              <option value="O_LEVEL_PAPER_2">O Level Paper 2</option>
+              <option value="A_LEVEL_PAPER_1">A Level Paper 1</option>
+              <option value="A_LEVEL_PAPER_2">A Level Paper 2</option>
+              <option value="INTERMEDIATE">Intermediate</option>
+              <option value="ACCA">ACCA</option>
+              <option value="CIMA">CIMA</option>
+              <option value="MATRICULATION">Matriculation</option>
+              <option value="TECHNICAL_BOARD">Technical Board</option>
             </select>
           </div>
 
           {/* Buttons */}
           <div className="flex justify-end gap-4 pt-6">
             <Button
-              text={mode === "view"?  "Back" : "Cancel"}
-              className={mode === "view"?  "btn-primary" : "btn-light"}
+              text={mode === "view" ? "Back" : "Cancel"}
+              className={mode === "view" ? "btn-primary" : "btn-light"}
               type="button"
               onClick={() => navigate("/questions-listing")}
             />

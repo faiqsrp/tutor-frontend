@@ -121,6 +121,8 @@ const AddDocumentPage = () => {
   );
   const isVideoLecture =
     selectedDocType?.documentType?.toLowerCase() === "video lectures";
+     const isZoomLinks =
+    selectedDocType?.documentType?.toLowerCase() === "zoom links";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -134,10 +136,10 @@ const AddDocumentPage = () => {
       newErrors.documnetBrief = "Document brief is required";
 
     //  Only validate documentURL if "Video Lectures"
-    if (isVideoLecture && !formData.documentURL.trim())
+    if ((isVideoLecture || isZoomLinks) && !formData.documentURL.trim())
       newErrors.documentURL = "Document URL is required for video lectures";
 
-    if (!isVideoLecture && !formData.documentUpload.trim()) {
+    if (!(isVideoLecture || isZoomLinks) && !formData.documentUpload.trim()) {
       newErrors.documentUpload = "Please upload a document";
     }
 
@@ -278,7 +280,7 @@ const AddDocumentPage = () => {
             </div>
 
             {/*  Document URL — only visible for Video Lectures */}
-            {isVideoLecture && (
+            {(isVideoLecture || isZoomLinks) && (
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Document URL
@@ -302,7 +304,7 @@ const AddDocumentPage = () => {
 
             {/* File Upload */}
 
-            {!isViewMode && !isVideoLecture && (
+            {!isViewMode && !isVideoLecture && !isZoomLinks && (
 
               <div>
                 <label className="block text-sm font-medium mb-1">
@@ -343,6 +345,15 @@ const AddDocumentPage = () => {
                   { value: "NA", label: "NA" },
                   { value: "Paper1", label: "Paper 1" },
                   { value: "Paper2", label: "Paper 2" },
+                  { value: "O_LEVEL_PAPER_1", label: "O Level Paper 1" },
+                  { value: "O_LEVEL_PAPER_2", label: "O Level Paper 2" },
+                  { value: "A_LEVEL_PAPER_1", label: "A Level Paper 1" },
+                  { value: "A_LEVEL_PAPER_2", label: "A Level Paper 2" },
+                  { value: "INTERMEDIATE", label: "Intermediate" },
+                  { value: "ACCA", label: "ACCA" },
+                  { value: "CIMA", label: "CIMA" },
+                  { value: "MATRICULATION", label: "Matriculation" },
+                  { value: "TECHNICAL_BOARD", label: "Technical Board" }
                 ].find((option) => option.value === formData.documentPage)}
                 onChange={(selectedOption) =>
                   setFormData((prev) => ({
@@ -354,6 +365,15 @@ const AddDocumentPage = () => {
                   { value: "NA", label: "NA" },
                   { value: "Paper1", label: "Paper 1" },
                   { value: "Paper2", label: "Paper 2" },
+                  { value: "O_LEVEL_PAPER_1", label: "O Level Paper 1" },
+                  { value: "O_LEVEL_PAPER_2", label: "O Level Paper 2" },
+                  { value: "A_LEVEL_PAPER_1", label: "A Level Paper 1" },
+                  { value: "A_LEVEL_PAPER_2", label: "A Level Paper 2" },
+                  { value: "INTERMEDIATE", label: "Intermediate" },
+                  { value: "ACCA", label: "ACCA" },
+                  { value: "CIMA", label: "CIMA" },
+                  { value: "MATRICULATION", label: "Matriculation" },
+                  { value: "TECHNICAL_BOARD", label: "Technical Board" }
                 ]}
                 isDisabled={isViewMode}
                 placeholder="Select Paper"
