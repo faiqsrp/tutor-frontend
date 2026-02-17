@@ -199,7 +199,7 @@ const QuestionsListing = () => {
     <div>
       <Card noborder>
         <div className="md:flex justify-between items-center mb-6">
-          <h4 className="card-title">Questions</h4>
+           <h4 className="text-xl text-black-600">Questions Listing</h4>
           <div className="flex items-center gap-4">
             <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
             <Button

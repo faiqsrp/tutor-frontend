@@ -44,38 +44,46 @@ const DocumentListing = () => {
   const [loading, setLoading] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedDocumentId, setSelectedDocumentId] = useState(null);
-  const [page, setPage] = useState(1);
+
+  // Pagination states from API
+  const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(10);
+  const [totalDocuments, setTotalDocuments] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [pageFromApi, setPageFromApi] = useState(1);
 
-const confirmDelete = async () => {
-  if (!selectedDocumentId) {
-    toast.error("Document ID is missing");
-    return;
-  }
+  // Global filter state
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  try {
-    const token = localStorage.getItem("token");
-    await axios.delete(
-      `${import.meta.env.VITE_APP_BASE_URL}/documents/delete/${selectedDocumentId}`,
-      {
-        headers: { Authorization: `${token}` },
-      }
-    );
+  const confirmDelete = async () => {
+    if (!selectedDocumentId) {
+      toast.error("Document ID is missing");
+      return;
+    }
 
-    toast.success("Document deleted successfully");
-    setDocuments((prev) =>
-      prev.filter((doc) => doc._id !== selectedDocumentId)
-    );
-  } catch (error) {
-    console.error("Error deleting document:", error);
-    toast.error("Error deleting document");
-  } finally {
-    setDeleteModalOpen(false);
-    setSelectedDocumentId(null);
-  }
-};
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `${import.meta.env.VITE_APP_BASE_URL}/documents/delete/${selectedDocumentId}`,
+        {
+          headers: { Authorization: `${token}` },
+        }
+      );
 
+      toast.success("Document deleted successfully");
 
+      // Refresh current page after deletion
+      fetchDocuments(currentPage, limit, searchTerm);
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      toast.error("Error deleting document");
+    } finally {
+      setDeleteModalOpen(false);
+      setSelectedDocumentId(null);
+    }
+  };
 
   const handleAction = async (action, row) => {
     if (action === "edit") {
@@ -84,52 +92,67 @@ const confirmDelete = async () => {
     if (action === "view") {
       navigate(`/add-document/${row._id}`, { state: { mode: "view" } });
     }
-    // if (action === "delete") {
-    //   try {
-    //     const token = localStorage.getItem("token");
-    //     await axios.delete(
-    //       `${import.meta.env.VITE_APP_BASE_URL}/documents/delete/${row._id}`,
-    //       {
-    //         headers: { Authorization: `${token}` },
-    //       }
-    //     );
-    //     toast.success("Document deleted successfully");
-    //     // instantly update UI
-    //     setDocuments((prev) => prev.filter((doc) => doc._id !== row._id));
-    //   } catch (error) {
-    //     toast.error("Error deleting document:", error);
-    //   }
-    // }
   };
-  const actions = [
-    { name: "view", icon: "heroicons-outline:eye" },
-    { name: "edit", icon: "heroicons:pencil-square" },
-    { name: "delete", icon: "heroicons-outline:trash" },
-  ];
 
-  // Fetch Documents API
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("token");
-        const response = await axios.get(
-          `${import.meta.env.VITE_APP_BASE_URL}/documents/GetAll`,
-          {
-            headers: { Authorization: `${token}` },
-          }
-        );
+  // Fetch Documents API with pagination and search
+  const fetchDocuments = async (page = 1, limit = 10, search = "") => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
 
-        setDocuments(response.data.data || []);
-      } catch (error) {
-        console.error("Error fetching documents:", error);
-      } finally {
-        setLoading(false); //  stop loading after fetch
+      // Build query params
+      let url = `${import.meta.env.VITE_APP_BASE_URL}/documents/GetAll?page=${page}&limit=${limit}`;
+
+      // Add search if present
+      if (search) {
+        url += `&search=${encodeURIComponent(search)}`;
       }
-    };
 
-    fetchDocuments();
-  }, []);
+      const response = await axios.get(url, {
+        headers: { Authorization: `${token}` },
+      });
+
+      setDocuments(response.data.data || []);
+
+      // Set pagination metadata
+      if (response.data.meta) {
+        setTotalDocuments(response.data.meta.totalDocuments);
+        setTotalPages(response.data.meta.totalPages);
+        setHasNextPage(response.data.meta.hasNextPage);
+        setCurrentPage(response.data.meta.page);
+        setPageFromApi(response.data.meta.page);
+      }
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      toast.error("Error fetching documents");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial fetch and fetch when page/search changes
+  useEffect(() => {
+    // Debounce search to avoid too many API calls
+    const timer = setTimeout(() => {
+      fetchDocuments(currentPage, limit, searchTerm);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [currentPage, limit, searchTerm]);
+
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  // Handle global filter change
+  const handleGlobalFilterChange = (value) => {
+    setGlobalFilter(value);
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page on new search
+  };
 
   const COLUMNS = useMemo(
     () => [
@@ -137,11 +160,11 @@ const confirmDelete = async () => {
         Header: "S.No",
         id: "serialNo",
         Cell: (row) => (
-          <span>{row.row.index + 1 + (page - 1) * limit}</span>
+          <span>{(row.row.index + 1) + (pageFromApi - 1) * limit}</span>
         ),
       },
       {
-        Header: "Tite",
+        Header: "Title",
         accessor: (row) => row?.title || row?.description,
         Cell: (row) => (
           <span className="text-sm text-slate-600 dark:text-slate-300">
@@ -160,7 +183,7 @@ const confirmDelete = async () => {
       },
       {
         Header: "Paper",
-        accessor: "documentPage", // comes directly from backend (Page1, Page2, NA)
+        accessor: "documentPage",
         Cell: (row) => (
           <span className="text-sm text-slate-600 dark:text-slate-300">
             {row?.cell?.value || "NA"}
@@ -171,7 +194,7 @@ const confirmDelete = async () => {
         Header: "Document",
         accessor: "documentFile",
         Cell: ({ row }) => {
-          const fileUrl = row.original?.documentFile;
+          const fileUrl = row.original?.documentUpload || row.original?.documentURL;
           return fileUrl ? (
             <a
               href={fileUrl.startsWith("http") ? fileUrl : `${import.meta.env.VITE_APP_BASE_URL}/${fileUrl}`}
@@ -186,7 +209,6 @@ const confirmDelete = async () => {
           );
         },
       },
-
       {
         Header: "Doc Brief",
         accessor: (row) => row?.documnetBrief || row?.description,
@@ -223,7 +245,6 @@ const confirmDelete = async () => {
         accessor: "action",
         Cell: ({ row }) => (
           <div className="flex space-x-3 rtl:space-x-reverse">
-            {/* View */}
             <button
               className="action-btn"
               type="button"
@@ -231,8 +252,6 @@ const confirmDelete = async () => {
             >
               <Icon icon="heroicons:eye" />
             </button>
-
-            {/* Edit */}
             <button
               className="action-btn"
               type="button"
@@ -240,13 +259,11 @@ const confirmDelete = async () => {
             >
               <Icon icon="heroicons:pencil-square" />
             </button>
-
-            {/* Delete */}
             <button
               className="action-btn"
               onClick={() => {
-                setSelectedDocumentId(row.original._id); // ✅ Store the actual ID
-                setDeleteModalOpen(true); // ✅ Open modal
+                setSelectedDocumentId(row.original._id);
+                setDeleteModalOpen(true);
               }}
             >
               <Icon icon="heroicons:trash" className="text-red-600" />
@@ -255,14 +272,19 @@ const confirmDelete = async () => {
         ),
       },
     ],
-    [page, limit]
+    [pageFromApi, limit]
   );
 
   const data = useMemo(() => documents, [documents]);
 
   // react-table instance
   const tableInstance = useTable(
-    { columns: COLUMNS, data },
+    {
+      columns: COLUMNS,
+      data,
+      manualPagination: true,
+      pageCount: totalPages
+    },
     useGlobalFilter,
     useSortBy,
     usePagination,
@@ -290,18 +312,18 @@ const confirmDelete = async () => {
     page: tablePage,
     prepareRow,
     state,
-    setGlobalFilter,
   } = tableInstance;
-
-  const { globalFilter } = state;
 
   return (
     <div>
       <Card noborder>
         <div className="md:flex justify-between items-center mb-6">
-          <h4 className="card-title">Documents</h4>
+          <h4 className="text-xl text-black-600">Document Listing</h4>
           <div className="flex items-center gap-4">
-            <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
+            <GlobalFilter
+              filter={globalFilter}
+              setFilter={handleGlobalFilterChange}
+            />
             <Button
               text={
                 <>
@@ -359,7 +381,7 @@ const confirmDelete = async () => {
                         </div>
                       </td>
                     </tr>
-                  ) : tablePage.length > 0 ? (
+                  ) : documents.length > 0 ? (
                     tablePage.map((row) => {
                       prepareRow(row);
                       return (
@@ -374,8 +396,8 @@ const confirmDelete = async () => {
                     })
                   ) : (
                     <tr>
-                      <td colSpan={COLUMNS.length + 1} className="py-6 text-gray-500">
-                        No students found
+                      <td colSpan={COLUMNS.length + 1} className="py-6 text-center text-gray-500">
+                        No documents found
                       </td>
                     </tr>
                   )}
@@ -385,22 +407,23 @@ const confirmDelete = async () => {
           </div>
         </div>
 
-        {/* Dummy pagination (replace if backend provides real pagination) */}
+        {/* Simple Pagination - Exactly as requested */}
         <div className="md:flex justify-between items-center mt-6">
           <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            Page {page} | Total {documents.length} documents
+            Page {currentPage} of {totalPages || 1} | Total {totalDocuments} documents
           </span>
 
           <div className="flex items-center space-x-3">
             <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
               className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
             >
               Prev
             </button>
             <button
-              onClick={() => setPage((p) => p + 1)}
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!hasNextPage}
               className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
             >
               Next
@@ -408,6 +431,7 @@ const confirmDelete = async () => {
           </div>
         </div>
       </Card>
+
       <Modal
         activeModal={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
@@ -433,7 +457,6 @@ const confirmDelete = async () => {
           Are you sure you want to delete this document? This action cannot be undone.
         </p>
       </Modal>
-
     </div>
   );
 };

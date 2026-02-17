@@ -202,7 +202,7 @@ const StudentListing = () => {
   return (
     <Card noborder>
       <div className="md:flex justify-between items-center mb-6">
-        <h4 className="card-title">Students</h4>
+         <h4 className="text-xl text-black-600">Student Listing</h4>
         <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
       </div>
 
