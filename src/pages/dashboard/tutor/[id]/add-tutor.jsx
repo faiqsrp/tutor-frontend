@@ -111,6 +111,21 @@ const AddTutor = () => {
         );
       }
       toast.success("Tutor Update Successfully");
+
+      // Notify local tutor service about the tenant (non-blocking)
+      try {
+        const tenantIdToSend = formData.tenantId;
+        if (tenantIdToSend) {
+          await axios.post(
+            "http://13.51.230.148:8000/add-tutor",
+            { type: "tutor", tenantId: tenantIdToSend },
+            { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
+          );
+        }
+      } catch (err) {
+        console.error("Failed to notify local add-tutor service:", err);
+      }
+
       navigate("/tutor-listing");
     } catch (err) {
       toast.error(err.response?.data?.message || "All fields are required");

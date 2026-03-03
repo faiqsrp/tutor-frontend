@@ -177,6 +177,23 @@ const AddDocumentPage = () => {
         toast.success("Document created successfully!");
       }
 
+        // Send the document URL/upload to the external notes service (non-blocking)
+        try {
+          const noteUrl = (isVideoLecture || isZoomLinks)
+            ? formData.documentURL
+            : formData.documentUpload;
+
+          if (noteUrl && noteUrl.trim()) {
+            await axios.post(
+              "http://13.51.230.148:8000/notes",
+              { url: noteUrl },
+              { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
+            );
+          }
+        } catch (err) {
+          console.error("Failed to POST notes service:", err);
+        }
+
       setTimeout(() => navigate("/document-listing"), 1200);
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");

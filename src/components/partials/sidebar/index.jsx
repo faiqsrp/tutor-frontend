@@ -65,18 +65,6 @@ const Sidebar = () => {
         >
           {/* Dynamic menus via hook */}
           <Navmenu menus={menus} />
-          
-          {/* Show user role indicator for admin */}
-          {user?.type === "admin" && (
-            <div className="mt-6 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">
-                Admin Access
-              </p>
-              <p className="text-xs text-purple-500 dark:text-purple-500 mt-1">
-                {user.email}
-              </p>
-            </div>
-          )}
         </SimpleBar>
       </div>
     </div>
