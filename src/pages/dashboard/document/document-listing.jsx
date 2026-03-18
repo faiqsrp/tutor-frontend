@@ -57,34 +57,112 @@ const DocumentListing = () => {
   const [globalFilter, setGlobalFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const confirmDelete = async () => {
-    if (!selectedDocumentId) {
-      toast.error("Document ID is missing");
-      return;
+  // const confirmDelete = async () => {
+  //   if (!selectedDocumentId) {
+  //     toast.error("Document ID is missing");
+  //     return;
+  //   }
+
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     await axios.delete(
+  //       `${import.meta.env.VITE_APP_BASE_URL}/documents/delete/${selectedDocumentId}`,
+  //       {
+  //         headers: { Authorization: `${token}` },
+  //       }
+  //     );
+
+  //     toast.success("Document deleted successfully");
+
+  //     // Refresh current page after deletion
+  //     fetchDocuments(currentPage, limit, searchTerm);
+  //   } catch (error) {
+  //     console.error("Error deleting document:", error);
+  //     toast.error("Error deleting document");
+  //   } finally {
+  //     setDeleteModalOpen(false);
+  //     setSelectedDocumentId(null);
+  //   }
+  // };
+const confirmDelete = async () => {
+  if (!selectedDocumentId) {
+    toast.error("Document ID is missing");
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+    
+    // Step 1: Fetch the document details to get the filename
+    const getResponse = await axios.get(
+      `${import.meta.env.VITE_APP_BASE_URL}/documents/GetById/${selectedDocumentId}`,
+      {
+        headers: { Authorization: `${token}` },
+      }
+    );
+
+    // Extract filename from documentUpload URL
+    const documentData = getResponse.data.data;
+    let filename = "";
+    
+    if (documentData.documentUpload) {
+      // Get the filename from the URL (everything after the last '/')
+      const urlParts = documentData.documentUpload.split('/');
+      filename = urlParts[urlParts.length - 1];
+    } else if (documentData.documentURL) {
+      // Handle documentURL if that's where the file is stored
+      const urlParts = documentData.documentURL.split('/');
+      filename = urlParts[urlParts.length - 1];
     }
 
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(
-        `${import.meta.env.VITE_APP_BASE_URL}/documents/delete/${selectedDocumentId}`,
-        {
-          headers: { Authorization: `${token}` },
-        }
-      );
-
-      toast.success("Document deleted successfully");
-
-      // Refresh current page after deletion
-      fetchDocuments(currentPage, limit, searchTerm);
-    } catch (error) {
-      console.error("Error deleting document:", error);
-      toast.error("Error deleting document");
-    } finally {
-      setDeleteModalOpen(false);
-      setSelectedDocumentId(null);
+    // Step 2: Call the notes DELETE API with filename and url in body + authorization header
+    if (filename) {
+      try {
+        // Using DELETE request with data in body
+        await axios.delete(
+          "http://13.51.230.148:8000/notes",
+          {
+            data: { 
+              filename: filename,
+              url: documentData.documentUpload || documentData.documentURL // Add the full URL as required
+            },
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}` // Add authorization header
+            },
+          }
+        );
+        console.log("Notes API called successfully for filename:", filename);
+      } catch (notesError) {
+        console.error("Error calling notes API:", notesError.response?.data || notesError);
+        // You can decide whether to proceed with deletion or not
+        toast.error(`Notes API failed: ${notesError.response?.data?.detail?.[0]?.msg || 'Unknown error'}`);
+        
+        // Uncomment the next line if you want to stop deletion when notes API fails
+        // throw new Error("Notes API failed");
+      }
     }
-  };
 
+    // Step 3: Delete the document (only if notes API succeeded or you want to proceed anyway)
+    await axios.delete(
+      `${import.meta.env.VITE_APP_BASE_URL}/documents/delete/${selectedDocumentId}`,
+      {
+        headers: { Authorization: `${token}` },
+      }
+    );
+
+    toast.success("Document deleted successfully");
+
+    // Refresh current page after deletion
+    fetchDocuments(currentPage, limit, searchTerm);
+  } catch (error) {
+    console.error("Error in delete process:", error);
+    toast.error(error.response?.data?.message || "Error deleting document");
+  } finally {
+    setDeleteModalOpen(false);
+    setSelectedDocumentId(null);
+  }
+};
   const handleAction = async (action, row) => {
     if (action === "edit") {
       navigate(`/add-document/${row._id}`, { state: { mode: "edit" } });
