@@ -36,6 +36,11 @@ export const menuItems = [
     icon: "heroicons-outline:document",
     link: "/document-listing",
   },
+   {
+    title: "Assignment",
+    icon: "heroicons-outline:document",
+    link: "/assignment-listing",
+  },
  {
     title: "Generate Question",
     icon: "heroicons:question-mark-circle",

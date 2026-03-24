@@ -141,6 +141,8 @@ import AllStudentListing from "./pages/dashboard/allStudent/all-student-listing"
 import QuestionsListing from "./pages/dashboard/question/questions-listing";
 import AddQuestionsPage from "./pages/dashboard/question/[id]/add-question";
 import EditProfilePage from "./pages/utility/edit-profile";
+import AssignmentListing from "./pages/dashboard/assignment/assignment-listing";
+import AddAssignmentPage from "./pages/dashboard/assignment/[id]/add-assignment";
 
 
 function App() {
@@ -181,6 +183,11 @@ function App() {
           <Route path="questions-listing" element={<QuestionsListing />} />
           <Route path="add-question/:id" element={<AddQuestionsPage />} />
           <Route path="add-question/add" element={<AddQuestionsPage />} />
+          <Route path="assignment-listing" element={<AssignmentListing/>} />
+          <Route path="add-assignment/:id" element={<AddAssignmentPage />} />
+          <Route path="add-assignment/add" element={<AddAssignmentPage/>} />
+
+
           <Route path="ecommerce" element={<Ecommerce />} />
           <Route path="crm" element={<CrmPage />} />
           <Route path="project" element={<ProjectPage />} />
