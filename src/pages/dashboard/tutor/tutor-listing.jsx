@@ -9,7 +9,6 @@ import {
   useRowSelect,
   useSortBy,
   useGlobalFilter,
-  usePagination,
 } from "react-table";
 import GlobalFilter from "../../table/react-tables/GlobalFilter";
 import { toast } from "react-toastify";
@@ -71,21 +70,13 @@ const TutorListing = () => {
     if (action === "view") {
       navigate(`/add-tutor/${row._id}`, { state: { mode: "view" } });
     }
-    // if (action === "delete") {
-    //   try {
-    //     const token = localStorage.getItem("token");
-    //     await axios.delete(
-    //       `${import.meta.env.VITE_APP_BASE_URL}/user/admin-remove/${row._id}`,
-    //       { headers: { Authorization: `${token}` } }
-    //     );
-    //     toast.success("Tutor Deleted Successfully");
-    //     setTutors((prev) => prev.filter((t) => t._id !== row._id));
-    //   } catch (error) {
-    //     toast.error("Error deleting tutor:", error);
-    //   }
-    // }
   };
-
+  
+  const handleLimitChange = (newLimit) => {
+    setLimit(newLimit);
+    setPage(1); // Reset to first page when changing items per page
+  };
+  
   useEffect(() => {
     const fetchTutors = async () => {
       try {
@@ -101,12 +92,10 @@ const TutorListing = () => {
           .filter((u) => u.type === "tutor" && !u.isDeleted)
           .map((t) => ({
             ...t,
-            // Safely extract name from createdBy object or string
             createdBy:
               typeof t.createdBy === 'object' && t.createdBy !== null
                 ? t.createdBy.name
                 : t.createdBy || loggedInUser?.name || "-",
-            // Safely extract name from updatedBy object or string
             updatedBy:
               typeof t.updatedBy === 'object' && t.updatedBy !== null
                 ? t.updatedBy.name
@@ -115,12 +104,12 @@ const TutorListing = () => {
 
         setTutors(merged);
 
-        // Pagination info
-        if (response.data.pagination) {
-          const { total, page: currentPage, limit, totalPages } = response.data.pagination;
-          setTotal(total || 0);
+        // FIXED: Use 'meta' instead of 'pagination'
+        if (response.data.meta) {
+          const { totalTutors, page: currentPage, limit: currentLimit, totalPages } = response.data.meta;
+          setTotal(totalTutors || 0);
           setPage(currentPage || 1);
-          setLimit(limit || 10);
+          setLimit(currentLimit || 10);
           setPages(totalPages || 1);
         }
       } catch (error) {
@@ -133,13 +122,14 @@ const TutorListing = () => {
 
     fetchTutors();
   }, [page, limit, loggedInUser?.name]);
+  
   const COLUMNS = useMemo(
     () => [
       {
         Header: "S.No",
         id: "serialNo",
         Cell: (row) => (
-          <span>{row.row.index + 1 + (page - 1) * limit}</span>
+          <span>{(page - 1) * limit + row.row.index + 1}</span>
         ),
       },
       { Header: "Name", accessor: "name" },
@@ -148,7 +138,7 @@ const TutorListing = () => {
         accessor: "email",
         Cell: (row) => <span className="text-sm lowercase text-slate-600 dark:text-slate-300">{row?.cell?.value}</span>,
       },
-      { Header: "Username", accessor: "username" , Cell: (row) => <span>{row.value || "N/A"}</span>},
+      { Header: "Username", accessor: "username", Cell: (row) => <span>{row.value || "N/A"}</span> },
       {
         Header: "Tenant",
         accessor: "tenantId",
@@ -163,8 +153,8 @@ const TutorListing = () => {
         accessor: "isActive",
         Cell: (row) => <span>{row.value ? "Yes" : "No"}</span>,
       },
-      { Header: "Created By", accessor: "createdBy",Cell: (row) => <span>{row.value || "N/A"}</span> },
-      { Header: "Updated By", accessor: "updatedBy",Cell: (row) => <span>{row.value || "N/A"}</span> },
+      { Header: "Created By", accessor: "createdBy", Cell: (row) => <span>{row.value || "N/A"}</span> },
+      { Header: "Updated By", accessor: "updatedBy", Cell: (row) => <span>{row.value || "N/A"}</span> },
       {
         Header: "Created At",
         accessor: "createdAt",
@@ -196,7 +186,7 @@ const TutorListing = () => {
               className="action-btn"
               onClick={() => {
                 setSelectedTutorId(row.original._id);
-                setDeleteModalOpen(true); //  open modal
+                setDeleteModalOpen(true);
               }}
             >
               <Icon icon="heroicons:trash" className="text-red-600" />
@@ -214,7 +204,6 @@ const TutorListing = () => {
     { columns: COLUMNS, data },
     useGlobalFilter,
     useSortBy,
-    usePagination,
     useRowSelect,
     (hooks) => {
       hooks.visibleColumns.push((columns) => [
@@ -236,7 +225,7 @@ const TutorListing = () => {
     getTableProps,
     getTableBodyProps,
     headerGroups,
-    page: tablePage,
+    rows, // ✅ Use only rows, not tablePage
     prepareRow,
     state,
     setGlobalFilter,
@@ -306,8 +295,8 @@ const TutorListing = () => {
                         </div>
                       </td>
                     </tr>
-                  ) : tablePage.length > 0 ? (
-                    tablePage.map((row) => {
+                  ) : rows.length > 0 ? ( // ✅ Use rows instead of tablePage
+                    rows.map((row) => {
                       prepareRow(row);
                       return (
                         <tr {...row.getRowProps()}>
@@ -331,7 +320,6 @@ const TutorListing = () => {
             </div>
           </div>
         </div>
-
 
         {/* Pagination */}
         <div className="md:flex md:space-y-0 space-y-5 justify-between mt-6 items-center">
@@ -423,7 +411,7 @@ const TutorListing = () => {
             <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Show</span>
             <select
               value={limit}
-              onChange={(e) => setLimit(Number(e.target.value))}
+              onChange={(e) => handleLimitChange(Number(e.target.value))}
               className="form-select py-2"
             >
               {[5, 10, 20, 30, 40].map((size) => (
@@ -465,3 +453,4 @@ const TutorListing = () => {
 };
 
 export default TutorListing;
+

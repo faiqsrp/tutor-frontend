@@ -50,7 +50,7 @@ const AllStudentListing = () => {
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
-          `${import.meta.env.VITE_APP_BASE_URL}/user/Get-all`,
+          `${import.meta.env.VITE_APP_BASE_URL}/user/Get-all?limit=10000`,
           {
             headers: { Authorization: `${token}` },
           }
@@ -64,7 +64,7 @@ const AllStudentListing = () => {
   }, []);
 
   // Fetch Students (all or filtered)
- // ✅ Updated fetchStudents — backend pagination added
+ //  Updated fetchStudents — backend pagination added
 const fetchStudents = async (tenantId = selectedTutor?.value) => {
   if (!tenantId) return;
   try {
@@ -74,7 +74,7 @@ const fetchStudents = async (tenantId = selectedTutor?.value) => {
       `${import.meta.env.VITE_APP_BASE_URL}/user/getStudentByAdmin`,
       {
         headers: { Authorization: `${token}` },
-        params: { tenantId, page, limit }, // ✅ Added page & limit
+        params: { tenantId, page, limit }, //  Added page & limit
       }
     );
 
